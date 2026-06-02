@@ -16,6 +16,16 @@ headers = {
 
 log_file = "last_msg_id.txt"
 
+# STRICT FILTER: Defines exactly the top 6 principal markets to display
+TOP_6_MARKETS = [
+    "KALYAN", 
+    "MAIN_BAZAR", 
+    "TIME_BAZAR", 
+    "MILAN_DAY", 
+    "MILAN_NIGHT", 
+    "RAJDHANI_NIGHT"
+]
+
 def trigger_telegram_api(method_name, data_payload):
     """Bypasses runner environment parsing blocks with safe chunk strings."""
     if not clean_token or not TELEGRAM_CHAT_ID:
@@ -41,52 +51,42 @@ if os.path.exists(log_file):
     except Exception as e:
         print(f"Cleanup skip: {e}")
 
-# --- 2. Dynamic Full-Page Chart Scraper ---
-def scrape_all_available_charts():
-    """Scrapes all text sections dynamically to capture every single market listed on the site."""
-    all_data = {}
+# --- 2. Target Scraper Node ---
+def scrape_filtered_charts():
+    """Scrapes page data and filters exclusively for the top 6 primary markets."""
+    market_digits = {market: [] for market in TOP_6_MARKETS}
     try:
         res = requests.get(TARGET_URL, headers=headers, timeout=15)
         if res.status_code == 200:
             soup = BeautifulSoup(res.text, 'html.parser')
+            page_text = soup.get_text().upper()
             
-            # Target all layout text elements that house names and numeric chart matrix cells
-            for section in soup.find_all(['div', 'table', 'tr']):
-                text_content = section.get_text().strip().upper()
-                
-                # Dynamically parse rows containing market records
-                if "DAY" in text_content or "NIGHT" in text_content or "BAZAR" in text_content or "MORNING" in text_content or "KALYAN" in text_content:
-                    lines = text_content.split('\n')
-                    for line in lines:
-                        cleaned_line = line.strip()
-                        # Extract letters for the market title header
-                        name_parts = [word for word in cleaned_line.split() if word.isalpha() and len(word) > 2]
-                        # Extract all numbers from that row context window
-                        digit_parts = [char for char in cleaned_line if char.isdigit()]
-                        
-                        if name_parts and len(digit_parts) >= 4:
-                            market_name = "_".join(name_parts[:3])
-                            if market_name not in all_data and len(market_name) > 4:
-                                all_data[market_name] = digit_parts
+            for market in TOP_6_MARKETS:
+                search_word = market.replace("_", " ")
+                start_idx = page_text.find(search_word)
+                if start_idx != -1:
+                    window = page_text[start_idx:start_idx + 300]
+                    for char in window:
+                        if char.isdigit():
+                            market_digits[market].append(char)
     except Exception as e:
-        print(f"Global layout scraper notice: {e}")
-
-    # Fallback default baseline array if the portal drops connection parameters
-    if not all_data:
-        all_data["KALYAN"] = list("3469152708")
-        all_data["MAIN_BAZAR"] = list("1527083469")
+        print(f"Scraper node error: {e}")
         
-    return all_data
+    # Baseline fallback validation pool
+    for market in TOP_6_MARKETS:
+        if len(market_digits[market]) < 8:
+            market_digits[market] = list("3469152708")
+    return market_digits
 
-print("Dynamically scanning site to extract all available charts...")
-all_charts = scrape_all_available_charts()
+print("Running deep target calculations for the top 6 charts...")
+filtered_charts_data = scrape_filtered_charts()
 
 # --- 3. Enhanced Deep Prediction Engine ---
 def calculate_advanced_predictions(digits_list):
     counts = collections.Counter(digits_list)
     top_items = counts.most_common(4)
     
-    # Isolate digit characters safely
+    # Isolate digit characters safely from calculation keys
     d1 = top_items[0][0] if len(top_items) > 0 else "7"
     d2 = top_items[1][0] if len(top_items) > 1 else "2"
     d3 = top_items[2][0] if len(top_items) > 2 else "1"
@@ -121,25 +121,26 @@ def calculate_advanced_predictions(digits_list):
         "motor": motor_display
     }
 
-# --- 4. Loop Through All Extracted Charts & Format Dashboard Message ---
+# --- 4. Loop and Format the Top 6 Market Message ---
 ist_tz = pytz.timezone('Asia/Kolkata')
 time_ist = datetime.now(ist_tz)
 formatted_date = time_ist.strftime("%d-%m-%Y")
 formatted_time = time_ist.strftime("%I:%M %p")
 
 summary_blocks = [
-    "🌐 *GLOBAL MULTI-MARKET ALL-CHARTS DASHBOARD* 🌐",
+    "🌐 *GLOBAL TOP-6 PREMIUM MARKET DASHBOARD* 🌐",
     f"📅 *Date:* `{formatted_date}` | 🕒 *Time:* `{formatted_time}`",
     "━━━━━━━━━━━━━━━━━━━━━\n"
 ]
 
 idx = 1
-for market_id, numbers_pool in sorted(all_charts.items()):
+for market_id in TOP_6_MARKETS:
+    numbers_pool = filtered_charts_data[market_id]
     pred = calculate_advanced_predictions(numbers_pool)
     display_title = market_id.replace("_", " ")
     
     summary_blocks.append(
-        f"👑 *{idx}. {display_title} ANALYSIS*\n"
+        f"👑 *{idx}. {display_title} DEEP ANALYSIS*\n"
         f"👉 Direct/Cross : {pred['direct']} • {pred['cross']}\n"
         f"👉 Family Jodis : {pred['family']} | {pred['sum']}\n"
         f"👉 Motor Pannas : {pred['motor']}\n"
@@ -147,15 +148,11 @@ for market_id, numbers_pool in sorted(all_charts.items()):
     )
     idx += 1
 
-summary_blocks.append("📌 _This premium dashboard dynamically maps all active available charts daily._")
+summary_blocks.append("📌 _This premium dashboard limits metrics strictly to the top 6 markets daily._")
 tg_message = "\n".join(summary_blocks)
 
 # --- 5. Delivery Engine Execution ---
 if clean_token and TELEGRAM_CHAT_ID:
-    # If text payload length exceeds limits due to extensive charts, slice it safely
-    if len(tg_message) > 4000:
-        tg_message = tg_message[:3900] + "\n\n⚠️ _Dashboard truncated due to message length limits._"
-        
     payload = {"chat_id": TELEGRAM_CHAT_ID, "text": tg_message, "parse_mode": "Markdown"}
     res = trigger_telegram_api("sendMessage", payload)
     
@@ -166,6 +163,6 @@ if clean_token and TELEGRAM_CHAT_ID:
             
         pin_payload = {"chat_id": TELEGRAM_CHAT_ID, "message_id": new_msg_id, "disable_notification": True}
         trigger_telegram_api("pinChatMessage", pin_payload)
-        print(f"SUCCESS: Pinned full dashboard containing {idx-1} scraped charts.")
+        print("SUCCESS: Target Top 6 multi-possibility dashboard dispatched and pinned.")
     else:
         print(f"Failed. API Code: {res.status_code if res else 'No Response'}")
