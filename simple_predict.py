@@ -69,7 +69,7 @@ def scrape_all_market_digits():
             market_digits[market] = list("3469152708")
     return market_digits
 
-print("Running deep multi-possibility calculations for all charts...")
+print("Running deep multi-possibility calculations for all 6 charts...")
 all_markets_data = scrape_all_market_digits()
 
 # --- 3. Enhanced Deep Prediction Engine ---
@@ -88,13 +88,13 @@ def calculate_advanced_predictions(digits_list):
     c2 = cut_map.get(d2, "7")
     
     # A. Calculate Family Jodis (Full Cut Set Combinations)
-    family_set = f"`{d1}{d2}` • `{d2}{d1}` • `{c1}{c2}` • `{c2}{c1}` • `{d1}{c2}` • `{c1}{d2}`"
+    family_set = f"`{d1}{d2}` • `{d2}{d1}` • `{c1}{c2}` • `{c2}{c1}`"
     
     # B. Calculate Target Total Sum Line
     target_sum = (int(d1) + int(d2)) % 10
-    sum_line = f"Sum `{target_sum}` Line (e.g. Jodis adding up to {target_sum})"
+    sum_line = f"Sum `{target_sum}` Line"
     
-    # C. Calculate Motor Pannas (All unique sorted combinations from top 4 hot digits)
+    # C. Calculate Motor Pannas
     motor_pool = sorted(list(set([d1, d2, d3, d4])))
     motor_pannas = []
     if len(motor_pool) >= 3:
@@ -102,19 +102,23 @@ def calculate_advanced_predictions(digits_list):
             for j in range(i + 1, len(motor_pool)):
                 for k in range(j + 1, len(motor_pool)):
                     motor_pannas.append(f"{motor_pool[i]}{motor_pool[j]}{motor_pool[k]}")
-    motor_display = " • ".join([f"`{p}`" for p in motor_pannas[:4]]) if motor_pannas else "`124` • `357`"
+    motor_display = " • ".join([f"`{p}`" for p in motor_pannas[:3]]) if motor_pannas else "`124` • `357`"
     
     return {
-        "direct": f"`{d1}{d2}` • `{d2}{d1}` • `{d3}{d4}`",
-        "cross": f"`{d1}{c1}` • `{d2}{c2}` • `{d3}{c2}`",
+        "direct": f"`{d1}{d2}` • `{d2}{d1}`",
+        "cross": f"`{d1}{c1}` • `{d2}{c2}`",
         "family": family_set,
         "sum": sum_line,
         "motor": motor_display
     }
 
-# Run deep computations across all target markets
+# Run deep computations across ALL six target markets
 kalyan = calculate_advanced_predictions(all_markets_data["KALYAN"])
 main_bazar = calculate_advanced_predictions(all_markets_data["MAIN_BAZAR"])
+time_bazar = calculate_advanced_predictions(all_markets_data["TIME_BAZAR"])
+milan_day = calculate_advanced_predictions(all_markets_data["MILAN_DAY"])
+milan_night = calculate_advanced_predictions(all_markets_data["MILAN_NIGHT"])
+rajdhani_night = calculate_advanced_predictions(all_markets_data["RAJDHANI_NIGHT"])
 
 # Timezone tracking
 ist_tz = pytz.timezone('Asia/Kolkata')
@@ -122,24 +126,40 @@ time_ist = datetime.now(ist_tz)
 formatted_date = time_ist.strftime("%d-%m-%Y")
 formatted_time = time_ist.strftime("%I:%M %p")
 
-# --- 4. Premium Dashboard Layout Template ---
+# --- 4. Premium Complete 6-Market Dashboard Template ---
 tg_message = (
     "🌐 *GLOBAL MULTI-POSSIBILITY DASHBOARD* 🌐\n"
     f"📅 *Date:* `{formatted_date}` | 🕒 *Time:* `{formatted_time}`\n"
     "━━━━━━━━━━━━━━━━━━━━━\n\n"
-    "👑 *1. KALYAN BAZAR EXTRA DEEP ANALYSIS*\n"
-    f"👉 Direct Jodis : {kalyan['direct']}\n"
-    f"👉 Cross Jodis  : {kalyan['cross']}\n"
-    f"👉 Family Jodis : {kalyan['family']}\n"
-    f"👉 Target Total : {kalyan['sum']}\n"
+    "👑 *1. KALYAN BAZAR STRATEGY*\n"
+    f"👉 Direct/Cross : {kalyan['direct']} • {kalyan['cross']}\n"
+    f"👉 Family Jodis : {kalyan['family']} | {kalyan['sum']}\n"
     f"👉 Motor Pannas : {kalyan['motor']}\n"
     "-------------------------------------\n\n"
-    "💼 *2. MAIN BAZAR EXTRA DEEP ANALYSIS*\n"
-    f"👉 Direct Jodis : {main_bazar['direct']}\n"
-    f"👉 Cross Jodis  : {main_bazar['cross']}\n"
-    f"👉 Family Jodis : {main_bazar['family']}\n"
-    f"👉 Target Total : {main_bazar['sum']}\n"
+    "💼 *2. MAIN BAZAR STRATEGY*\n"
+    f"👉 Direct/Cross : {main_bazar['direct']} • {main_bazar['cross']}\n"
+    f"👉 Family Jodis : {main_bazar['family']} | {main_bazar['sum']}\n"
     f"👉 Motor Pannas : {main_bazar['motor']}\n"
+    "-------------------------------------\n\n"
+    "⏰ *3. TIME BAZAR STRATEGY*\n"
+    f"👉 Direct/Cross : {time_bazar['direct']} • {time_bazar['cross']}\n"
+    f"👉 Family Jodis : {time_bazar['family']} | {time_bazar['sum']}\n"
+    f"👉 Motor Pannas : {time_bazar['motor']}\n"
+    "-------------------------------------\n\n"
+    "☀️ *4. MILAN DAY STRATEGY*\n"
+    f"👉 Direct/Cross : {milan_day['direct']} • {milan_day['cross']}\n"
+    f"👉 Family Jodis : {milan_day['family']} | {milan_day['sum']}\n"
+    f"👉 Motor Pannas : {milan_day['motor']}\n"
+    "-------------------------------------\n\n"
+    "🌙 *5. MILAN NIGHT STRATEGY*\n"
+    f"👉 Direct/Cross : {milan_night['direct']} • {milan_night['cross']}\n"
+    f"👉 Family Jodis : {milan_night['family']} | {milan_night['sum']}\n"
+    f"👉 Motor Pannas : {milan_night['motor']}\n"
+    "-------------------------------------\n\n"
+    "🚀 *6. RAJDHANI NIGHT STRATEGY*\n"
+    f"👉 Direct/Cross : {rajdhani_night['direct']} • {rajdhani_night['cross']}\n"
+    f"👉 Family Jodis : {rajdhani_night['family']} | {rajdhani_night['sum']}\n"
+    f"👉 Motor Pannas : {rajdhani_night['motor']}\n"
     "━━━━━━━━━━━━━━━━━━━━━\n"
     "📌 _This premium dashboard expands structural probability analytics automatically daily._"
 )
@@ -156,6 +176,6 @@ if clean_token and TELEGRAM_CHAT_ID:
             
         pin_payload = {"chat_id": TELEGRAM_CHAT_ID, "message_id": new_msg_id, "disable_notification": True}
         trigger_telegram_api("pinChatMessage", pin_payload)
-        print("SUCCESS: Advanced multi-possibility matrix dispatched and pinned.")
+        print("SUCCESS: Full 6-Market deep structural analysis panel dispatched and pinned.")
     else:
         print(f"Failed. API Code: {res.status_code if res else 'No Response'}")
