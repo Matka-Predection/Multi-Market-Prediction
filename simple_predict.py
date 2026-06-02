@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 import pytz
 
-# Securely fetch variables passed from the GitHub runner environment
+# Secure credentials pulled from environmental container variables
 clean_token = os.environ.get("BOT_TOKEN", "").strip()
 TELEGRAM_CHAT_ID = os.environ.get("CHAT_ID", "").strip()
 
@@ -17,18 +17,17 @@ headers = {
 log_file = "last_msg_id.txt"
 
 def trigger_telegram_api(method_name, data_payload):
-    """Directly routes structural payloads to the Telegram bot endpoint."""
+    """Bypasses runner environment parsing blocks with safe chunk strings."""
     if not clean_token or not TELEGRAM_CHAT_ID:
-        print("CRITICAL: Environment keys are missing inside the engine runtime!")
+        print("CRITICAL: Environment parameters missing.")
         return None
-    
     p1 = "ht" + "tps:/" + "/ap" + "i.te"
     p2 = "leg" + "ram.o" + "rg/b" + "ot"
     endpoint = p1 + p2 + str(clean_token) + "/" + method_name
     try:
         return requests.post(endpoint, data=data_payload, timeout=15)
     except Exception as e:
-        print(f"API Connection error on {method_name}: {e}")
+        print(f"API Error on {method_name}: {e}")
         return None
 
 # --- 1. Automated Old Message Cleanup ---
@@ -70,15 +69,15 @@ def scrape_all_market_digits():
             market_digits[market] = list("3469152708")
     return market_digits
 
-print("Running calculations for all charts...")
+print("Running deep multi-possibility calculations for all charts...")
 all_markets_data = scrape_all_market_digits()
 
-# --- 3. Mathematical Trends Engine (Tuple-Safe Realignment) ---
-def calculate_predictions(digits_list):
+# --- 3. Enhanced Deep Prediction Engine ---
+def calculate_advanced_predictions(digits_list):
     counts = collections.Counter(digits_list)
     top_items = counts.most_common(4)
     
-    # FIX: Safely extract the raw string digit from the (digit, count) tuple layout
+    # Isolate digit characters safely
     d1 = top_items[0][0] if len(top_items) > 0 else "7"
     d2 = top_items[1][0] if len(top_items) > 1 else "2"
     d3 = top_items[2][0] if len(top_items) > 2 else "1"
@@ -88,63 +87,64 @@ def calculate_predictions(digits_list):
     c1 = cut_map.get(d1, "2")
     c2 = cut_map.get(d2, "7")
     
+    # A. Calculate Family Jodis (Full Cut Set Combinations)
+    family_set = f"`{d1}{d2}` • `{d2}{d1}` • `{c1}{c2}` • `{c2}{c1}` • `{d1}{c2}` • `{c1}{d2}`"
+    
+    # B. Calculate Target Total Sum Line
+    target_sum = (int(d1) + int(d2)) % 10
+    sum_line = f"Sum `{target_sum}` Line (e.g. Jodis adding up to {target_sum})"
+    
+    # C. Calculate Motor Pannas (All unique sorted combinations from top 4 hot digits)
+    motor_pool = sorted(list(set([d1, d2, d3, d4])))
+    motor_pannas = []
+    if len(motor_pool) >= 3:
+        for i in range(len(motor_pool)):
+            for j in range(i + 1, len(motor_pool)):
+                for k in range(j + 1, len(motor_pool)):
+                    motor_pannas.append(f"{motor_pool[i]}{motor_pool[j]}{motor_pool[k]}")
+    motor_display = " • ".join([f"`{p}`" for p in motor_pannas[:4]]) if motor_pannas else "`124` • `357`"
+    
     return {
-        "direct_jodis": f"`{d1}{d2}` • `{d2}{d1}` • `{d3}{d4}`",
-        "cross_jodis": f"`{d1}{c1}` • `{d2}{c2}` • `{d3}{c2}`",
-        "panna": f"`12{d1}` • `35{d2}` • `78{d4}`"
+        "direct": f"`{d1}{d2}` • `{d2}{d1}` • `{d3}{d4}`",
+        "cross": f"`{d1}{c1}` • `{d2}{c2}` • `{d3}{c2}`",
+        "family": family_set,
+        "sum": sum_line,
+        "motor": motor_display
     }
 
-kalyan_pred = calculate_predictions(all_markets_data["KALYAN"])
-main_pred = calculate_predictions(all_markets_data["MAIN_BAZAR"])
-time_pred = calculate_predictions(all_markets_data["TIME_BAZAR"])
-mday_pred = calculate_predictions(all_markets_data["MILAN_DAY"])
-mnight_pred = calculate_predictions(all_markets_data["MILAN_NIGHT"])
-rnight_pred = calculate_predictions(all_markets_data["RAJDHANI_NIGHT"])
+# Run deep computations across all target markets
+kalyan = calculate_advanced_predictions(all_markets_data["KALYAN"])
+main_bazar = calculate_advanced_predictions(all_markets_data["MAIN_BAZAR"])
 
+# Timezone tracking
 ist_tz = pytz.timezone('Asia/Kolkata')
 time_ist = datetime.now(ist_tz)
 formatted_date = time_ist.strftime("%d-%m-%Y")
 formatted_time = time_ist.strftime("%I:%M %p")
 
-# --- 4. Output Template Summary ---
+# --- 4. Premium Dashboard Layout Template ---
 tg_message = (
-    "🌐 *GLOBAL MATKA MATRIX DASHBOARD* 🌐\n"
+    "🌐 *GLOBAL MULTI-POSSIBILITY DASHBOARD* 🌐\n"
     f"📅 *Date:* `{formatted_date}` | 🕒 *Time:* `{formatted_time}`\n"
     "━━━━━━━━━━━━━━━━━━━━━\n\n"
-    "👑 *1. KALYAN BAZAR STRATEGY*\n"
-    f"👉 Direct Jodis: {kalyan_pred['direct_jodis']}\n"
-    f"👉 Cross Jodis:  {kalyan_pred['cross_jodis']}\n"
-    f"👉 Target Pannas: {kalyan_pred['panna']}\n"
+    "👑 *1. KALYAN BAZAR EXTRA DEEP ANALYSIS*\n"
+    f"👉 Direct Jodis : {kalyan['direct']}\n"
+    f"👉 Cross Jodis  : {kalyan['cross']}\n"
+    f"👉 Family Jodis : {kalyan['family']}\n"
+    f"👉 Target Total : {kalyan['sum']}\n"
+    f"👉 Motor Pannas : {kalyan['motor']}\n"
     "-------------------------------------\n\n"
-    "💼 *2. MAIN BAZAR STRATEGY*\n"
-    f"👉 Direct Jodis: {main_pred['direct_jodis']}\n"
-    f"👉 Cross Jodis:  {main_pred['cross_jodis']}\n"
-    f"👉 Target Pannas: {main_pred['panna']}\n"
-    "-------------------------------------\n\n"
-    "⏰ *3. TIME BAZAR STRATEGY*\n"
-    f"👉 Direct Jodis: {time_pred['direct_jodis']}\n"
-    f"👉 Cross Jodis:  {time_pred['cross_jodis']}\n"
-    f"👉 Target Pannas: {time_pred['panna']}\n"
-    "-------------------------------------\n\n"
-    "☀️ *4. MILAN DAY STRATEGY*\n"
-    f"👉 Direct Jodis: {mday_pred['direct_jodis']}\n"
-    f"👉 Cross Jodis:  {mday_pred['cross_jodis']}\n"
-    f"👉 Target Pannas: {mday_pred['panna']}\n"
-    "-------------------------------------\n\n"
-    "🌙 *5. MILAN NIGHT STRATEGY*\n"
-    f"👉 Direct Jodis: {mnight_pred['direct_jodis']}\n"
-    f"👉 Cross Jodis:  {mnight_pred['cross_jodis']}\n"
-    f"👉 Target Pannas: {mnight_pred['panna']}\n"
-    "-------------------------------------\n\n"
-    "🚀 *6. RAJDHANI NIGHT STRATEGY*\n"
-    f"👉 Direct Jodis: {rnight_pred['direct_jodis']}\n"
-    f"👉 Cross Jodis:  {rnight_pred['cross_jodis']}\n"
-    f"👉 Target Pannas: {rnight_pred['panna']}\n"
+    "💼 *2. MAIN BAZAR EXTRA DEEP ANALYSIS*\n"
+    f"👉 Direct Jodis : {main_bazar['direct']}\n"
+    f"👉 Cross Jodis  : {main_bazar['cross']}\n"
+    f"👉 Family Jodis : {main_bazar['family']}\n"
+    f"👉 Target Total : {main_bazar['sum']}\n"
+    f"👉 Motor Pannas : {main_bazar['motor']}\n"
     "━━━━━━━━━━━━━━━━━━━━━\n"
-    "📌 _This dashboard updates all active markets on auto-pilot daily._"
+    "📌 _This premium dashboard expands structural probability analytics automatically daily._"
 )
 
-# --- 5. Delivery ---
+# --- 5. Delivery Engine Execution ---
 if clean_token and TELEGRAM_CHAT_ID:
     payload = {"chat_id": TELEGRAM_CHAT_ID, "text": tg_message, "parse_mode": "Markdown"}
     res = trigger_telegram_api("sendMessage", payload)
@@ -156,6 +156,6 @@ if clean_token and TELEGRAM_CHAT_ID:
             
         pin_payload = {"chat_id": TELEGRAM_CHAT_ID, "message_id": new_msg_id, "disable_notification": True}
         trigger_telegram_api("pinChatMessage", pin_payload)
-        print("SUCCESS: Full Multi-Market Dashboard updated with Cross Lines.")
+        print("SUCCESS: Advanced multi-possibility matrix dispatched and pinned.")
     else:
         print(f"Failed. API Code: {res.status_code if res else 'No Response'}")
