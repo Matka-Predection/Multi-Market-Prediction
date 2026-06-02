@@ -11,7 +11,7 @@ TELEGRAM_CHAT_ID = os.environ.get("CHAT_ID", "").strip()
 
 TARGET_URL = "https://sattamatkadpboss.mobi"
 headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 }
 
 log_file = "last_msg_id.txt"
@@ -41,36 +41,45 @@ if os.path.exists(log_file):
     except Exception as e:
         print(f"Cleanup skip: {e}")
 
-# --- 2. Live Scraper Node ---
-def scrape_all_market_digits():
-    market_digits = {
-        "KALYAN": [], "MAIN_BAZAR": [], "TIME_BAZAR": [],
-        "MILAN_DAY": [], "MILAN_NIGHT": [], "RAJDHANI_NIGHT": []
-    }
+# --- 2. Dynamic Full-Page Chart Scraper ---
+def scrape_all_available_charts():
+    """Scrapes all text sections dynamically to capture every single market listed on the site."""
+    all_data = {}
     try:
         res = requests.get(TARGET_URL, headers=headers, timeout=15)
         if res.status_code == 200:
             soup = BeautifulSoup(res.text, 'html.parser')
-            page_text = soup.get_text().upper()
             
-            for market in market_digits.keys():
-                search_word = market.replace("_", " ")
-                start_idx = page_text.find(search_word)
-                if start_idx != -1:
-                    window = page_text[start_idx:start_idx + 300]
-                    for char in window:
-                        if char.isdigit():
-                            market_digits[market].append(char)
+            # Target all layout text elements that house names and numeric chart matrix cells
+            for section in soup.find_all(['div', 'table', 'tr']):
+                text_content = section.get_text().strip().upper()
+                
+                # Dynamically parse rows containing market records
+                if "DAY" in text_content or "NIGHT" in text_content or "BAZAR" in text_content or "MORNING" in text_content or "KALYAN" in text_content:
+                    lines = text_content.split('\n')
+                    for line in lines:
+                        cleaned_line = line.strip()
+                        # Extract letters for the market title header
+                        name_parts = [word for word in cleaned_line.split() if word.isalpha() and len(word) > 2]
+                        # Extract all numbers from that row context window
+                        digit_parts = [char for char in cleaned_line if char.isdigit()]
+                        
+                        if name_parts and len(digit_parts) >= 4:
+                            market_name = "_".join(name_parts[:3])
+                            if market_name not in all_data and len(market_name) > 4:
+                                all_data[market_name] = digit_parts
     except Exception as e:
-        print(f"Scraper error: {e}")
-        
-    for market in market_digits.keys():
-        if len(market_digits[market]) < 8:
-            market_digits[market] = list("3469152708")
-    return market_digits
+        print(f"Global layout scraper notice: {e}")
 
-print("Running deep multi-possibility calculations for all 6 charts...")
-all_markets_data = scrape_all_market_digits()
+    # Fallback default baseline array if the portal drops connection parameters
+    if not all_data:
+        all_data["KALYAN"] = list("3469152708")
+        all_data["MAIN_BAZAR"] = list("1527083469")
+        
+    return all_data
+
+print("Dynamically scanning site to extract all available charts...")
+all_charts = scrape_all_available_charts()
 
 # --- 3. Enhanced Deep Prediction Engine ---
 def calculate_advanced_predictions(digits_list):
@@ -92,7 +101,7 @@ def calculate_advanced_predictions(digits_list):
     
     # B. Calculate Target Total Sum Line
     target_sum = (int(d1) + int(d2)) % 10
-    sum_line = f"Sum `{target_sum}` Line"
+    sum_line = f"Sum `{target_sum}`"
     
     # C. Calculate Motor Pannas
     motor_pool = sorted(list(set([d1, d2, d3, d4])))
@@ -112,60 +121,41 @@ def calculate_advanced_predictions(digits_list):
         "motor": motor_display
     }
 
-# Run deep computations across ALL six target markets
-kalyan = calculate_advanced_predictions(all_markets_data["KALYAN"])
-main_bazar = calculate_advanced_predictions(all_markets_data["MAIN_BAZAR"])
-time_bazar = calculate_advanced_predictions(all_markets_data["TIME_BAZAR"])
-milan_day = calculate_advanced_predictions(all_markets_data["MILAN_DAY"])
-milan_night = calculate_advanced_predictions(all_markets_data["MILAN_NIGHT"])
-rajdhani_night = calculate_advanced_predictions(all_markets_data["RAJDHANI_NIGHT"])
-
-# Timezone tracking
+# --- 4. Loop Through All Extracted Charts & Format Dashboard Message ---
 ist_tz = pytz.timezone('Asia/Kolkata')
 time_ist = datetime.now(ist_tz)
 formatted_date = time_ist.strftime("%d-%m-%Y")
 formatted_time = time_ist.strftime("%I:%M %p")
 
-# --- 4. Premium Complete 6-Market Dashboard Template ---
-tg_message = (
-    "🌐 *GLOBAL MULTI-POSSIBILITY DASHBOARD* 🌐\n"
-    f"📅 *Date:* `{formatted_date}` | 🕒 *Time:* `{formatted_time}`\n"
-    "━━━━━━━━━━━━━━━━━━━━━\n\n"
-    "👑 *1. KALYAN BAZAR STRATEGY*\n"
-    f"👉 Direct/Cross : {kalyan['direct']} • {kalyan['cross']}\n"
-    f"👉 Family Jodis : {kalyan['family']} | {kalyan['sum']}\n"
-    f"👉 Motor Pannas : {kalyan['motor']}\n"
-    "-------------------------------------\n\n"
-    "💼 *2. MAIN BAZAR STRATEGY*\n"
-    f"👉 Direct/Cross : {main_bazar['direct']} • {main_bazar['cross']}\n"
-    f"👉 Family Jodis : {main_bazar['family']} | {main_bazar['sum']}\n"
-    f"👉 Motor Pannas : {main_bazar['motor']}\n"
-    "-------------------------------------\n\n"
-    "⏰ *3. TIME BAZAR STRATEGY*\n"
-    f"👉 Direct/Cross : {time_bazar['direct']} • {time_bazar['cross']}\n"
-    f"👉 Family Jodis : {time_bazar['family']} | {time_bazar['sum']}\n"
-    f"👉 Motor Pannas : {time_bazar['motor']}\n"
-    "-------------------------------------\n\n"
-    "☀️ *4. MILAN DAY STRATEGY*\n"
-    f"👉 Direct/Cross : {milan_day['direct']} • {milan_day['cross']}\n"
-    f"👉 Family Jodis : {milan_day['family']} | {milan_day['sum']}\n"
-    f"👉 Motor Pannas : {milan_day['motor']}\n"
-    "-------------------------------------\n\n"
-    "🌙 *5. MILAN NIGHT STRATEGY*\n"
-    f"👉 Direct/Cross : {milan_night['direct']} • {milan_night['cross']}\n"
-    f"👉 Family Jodis : {milan_night['family']} | {milan_night['sum']}\n"
-    f"👉 Motor Pannas : {milan_night['motor']}\n"
-    "-------------------------------------\n\n"
-    "🚀 *6. RAJDHANI NIGHT STRATEGY*\n"
-    f"👉 Direct/Cross : {rajdhani_night['direct']} • {rajdhani_night['cross']}\n"
-    f"👉 Family Jodis : {rajdhani_night['family']} | {rajdhani_night['sum']}\n"
-    f"👉 Motor Pannas : {rajdhani_night['motor']}\n"
+summary_blocks = [
+    "🌐 *GLOBAL MULTI-MARKET ALL-CHARTS DASHBOARD* 🌐",
+    f"📅 *Date:* `{formatted_date}` | 🕒 *Time:* `{formatted_time}`",
     "━━━━━━━━━━━━━━━━━━━━━\n"
-    "📌 _This premium dashboard expands structural probability analytics automatically daily._"
-)
+]
+
+idx = 1
+for market_id, numbers_pool in sorted(all_charts.items()):
+    pred = calculate_advanced_predictions(numbers_pool)
+    display_title = market_id.replace("_", " ")
+    
+    summary_blocks.append(
+        f"👑 *{idx}. {display_title} ANALYSIS*\n"
+        f"👉 Direct/Cross : {pred['direct']} • {pred['cross']}\n"
+        f"👉 Family Jodis : {pred['family']} | {pred['sum']}\n"
+        f"👉 Motor Pannas : {pred['motor']}\n"
+        "-------------------------------------"
+    )
+    idx += 1
+
+summary_blocks.append("📌 _This premium dashboard dynamically maps all active available charts daily._")
+tg_message = "\n".join(summary_blocks)
 
 # --- 5. Delivery Engine Execution ---
 if clean_token and TELEGRAM_CHAT_ID:
+    # If text payload length exceeds limits due to extensive charts, slice it safely
+    if len(tg_message) > 4000:
+        tg_message = tg_message[:3900] + "\n\n⚠️ _Dashboard truncated due to message length limits._"
+        
     payload = {"chat_id": TELEGRAM_CHAT_ID, "text": tg_message, "parse_mode": "Markdown"}
     res = trigger_telegram_api("sendMessage", payload)
     
@@ -176,6 +166,6 @@ if clean_token and TELEGRAM_CHAT_ID:
             
         pin_payload = {"chat_id": TELEGRAM_CHAT_ID, "message_id": new_msg_id, "disable_notification": True}
         trigger_telegram_api("pinChatMessage", pin_payload)
-        print("SUCCESS: Full 6-Market deep structural analysis panel dispatched and pinned.")
+        print(f"SUCCESS: Pinned full dashboard containing {idx-1} scraped charts.")
     else:
         print(f"Failed. API Code: {res.status_code if res else 'No Response'}")
