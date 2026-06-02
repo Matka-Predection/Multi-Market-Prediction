@@ -17,19 +17,22 @@ headers = {
 log_file = "last_msg_id.txt"
 
 def trigger_telegram_api(method_name, data_payload):
-    """Directly routes structural payloads to the Telegram bot endpoint."""
+    """Directly routes structural payloads to the Telegram bot endpoint with full diagnostic output."""
     if not clean_token or not TELEGRAM_CHAT_ID:
-        print("CRITICAL: Environment keys are missing inside the engine runtime!")
+        print("❌ CRITICAL DIAGNOSTIC: Environment keys are missing inside the engine runtime!")
+        print(f"Token length detected: {len(clean_token)} | Chat ID length detected: {len(TELEGRAM_CHAT_ID)}")
         return None
     
-    # Fragmenting the domain stops the runner from throwing a parsing exception
     p1 = "ht" + "tps:/" + "/ap" + "i.te"
     p2 = "leg" + "ram.o" + "rg/b" + "ot"
     endpoint = p1 + p2 + str(clean_token) + "/" + method_name
     try:
-        return requests.post(endpoint, data=data_payload, timeout=15)
+        res = requests.post(endpoint, data=data_payload, timeout=15)
+        print(f"📡 DIAGNOSTIC [{method_name}]: Server responded with HTTP {res.status_code}")
+        print(f"📡 DIAGNOSTIC [{method_name}]: Server Response Details -> {res.text}")
+        return res
     except Exception as e:
-        print(f"API Connection error on {method_name}: {e}")
+        print(f"❌ CONNECTION FAILURE on {method_name}: {e}")
         return None
 
 # --- 1. Automated Old Message Cleanup ---
@@ -79,6 +82,7 @@ def calculate_predictions(digits_list):
     counts = collections.Counter(digits_list)
     top_items = counts.most_common(4)
     
+    # Safely extract the raw keys out of list tuples
     d1 = top_items[0][0] if len(top_items) > 0 else "7"
     d2 = top_items[1][0] if len(top_items) > 1 else "2"
     d3 = top_items[2][0] if len(top_items) > 2 else "1"
@@ -148,6 +152,6 @@ if clean_token and TELEGRAM_CHAT_ID:
             
         pin_payload = {"chat_id": TELEGRAM_CHAT_ID, "message_id": new_msg_id, "disable_notification": True}
         trigger_telegram_api("pinChatMessage", pin_payload)
-        print("SUCCESS: Full Dashboard updated and pinned.")
+        print("🏁 PROCESS COMPLETE: Full Dashboard updated and pinned successfully.")
     else:
-        print(f"Failed. API Code: {res.status_code if res else 'No Response'}")
+        print(f"❌ DISPATCH REJECTED BY TELEGRAM. Status code: {res.status_code if res else 'No Response'}")
