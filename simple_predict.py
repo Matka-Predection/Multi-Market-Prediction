@@ -5,16 +5,15 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 import pytz
 
-RAW_TOKEN = os.environ.get("TELEGRAM_TOKEN", "").strip()
-TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
+# ========================================================
+# HARDCODED CONFIGURATION - NO GITHUB SECRETS NEEDED
+# ========================================================
+clean_token = "PASTE_YOUR_BOT_TOKEN_HERE"
+TELEGRAM_CHAT_ID = "PASTE_YOUR_CHAT_ID_HERE"
+# ========================================================
 
-# Complete token parameter cleaning layer
-clean_token = RAW_TOKEN
-for bad_word in ["https://", "http://", "api.telegram.org", "telegram.org", "bot", "/"]:
-    clean_token = clean_token.replace(bad_word, "")
-
-# Target centralized data matrix configuration
-TARGET_URL = "https://sattamatkadpboss.mobi/"
+# Target centralized data dashboard
+TARGET_URL = "https://sattamatkadpboss.mobi"
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 }
@@ -22,8 +21,9 @@ headers = {
 log_file = "last_msg_id.txt"
 
 def trigger_telegram_api(method_name, data_payload):
-    """Executes secure, direct endpoint requests to bypass runner block constraints."""
-    if not clean_token:
+    """Executes secure request routing directly to Telegram endpoints."""
+    if not clean_token or "PASTE_YOUR" in clean_token:
+        print("Error: You forgot to replace the placeholder token string in the code!")
         return None
     p1 = "ht" + "tps:/" + "/ap" + "i.te"
     p2 = "leg" + "ram.o" + "rg/b" + "ot"
@@ -48,7 +48,7 @@ if os.path.exists(log_file):
 
 # --- 2. Advanced Multi-Market Scraping Engine ---
 def scrape_all_market_digits():
-    """Scrapes historical digits and groups them by their matching market structures."""
+    """Scrapes historical digits and groups them by market structures."""
     market_digits = {
         "KALYAN": [], "MAIN_BAZAR": [], "TIME_BAZAR": [],
         "MILAN_DAY": [], "MILAN_NIGHT": [], "RAJDHANI_NIGHT": []
@@ -60,12 +60,10 @@ def scrape_all_market_digits():
             soup = BeautifulSoup(res.text, 'html.parser')
             page_text = soup.get_text().upper()
             
-            # Extract digits from specific text blocks on the page
             for market in market_digits.keys():
                 search_word = market.replace("_", " ")
                 start_idx = page_text.find(search_word)
                 if start_idx != -1:
-                    # Capture local text block window surrounding the market name
                     window = page_text[start_idx:start_idx + 300]
                     for char in window:
                         if char.isdigit():
@@ -73,7 +71,6 @@ def scrape_all_market_digits():
     except Exception as e:
         print(f"Scraper node exception: {e}")
         
-    # Populate fallbacks if target web services return restricted profiles
     for market, digits in market_digits.items():
         if len(digits) < 8:
             market_digits[market] = list("3469152708")
@@ -88,6 +85,7 @@ def calculate_predictions(digits_list):
     counts = collections.Counter(digits_list)
     top_items = counts.most_common(4)
     
+    # Safely unpack the tuple keys
     d1 = top_items[0][0] if len(top_items) > 0 else "7"
     d2 = top_items[1][0] if len(top_items) > 1 else "2"
     d3 = top_items[2][0] if len(top_items) > 2 else "1"
@@ -119,27 +117,27 @@ tg_message = (
     "🌐 *GLOBAL MATKA MATRIX DASHBOARD* 🌐\n"
     f"📅 *Date:* `{formatted_date}` | 🕒 *Time:* `{formatted_time}`\n"
     "━━━━━━━━━━━━━━━━━━━━━\n\n"
-    "👑 *1. KALYAN BAZAR STRATEGY* [3:45 PM]\n"
+    "👑 *1. KALYAN BAZAR STRATEGY*\n"
     f"👉 Target Jodis: {kalyan_pred['jodis']}\n"
     f"👉 Target Pannas: {kalyan_pred['panna']}\n"
     "-------------------------------------\n\n"
-    "💼 *2. MAIN BAZAR STRATEGY* [9:35 PM]\n"
+    "💼 *2. MAIN BAZAR STRATEGY*\n"
     f"👉 Target Jodis: {main_pred['jodis']}\n"
     f"👉 Target Pannas: {main_pred['panna']}\n"
     "-------------------------------------\n\n"
-    "⏰ *3. TIME BAZAR STRATEGY* [1:00 PM]\n"
+    "⏰ *3. TIME BAZAR STRATEGY*\n"
     f"👉 Target Jodis: {time_pred['jodis']}\n"
     f"👉 Target Pannas: {time_pred['panna']}\n"
     "-------------------------------------\n\n"
-    "☀️ *4. MILAN DAY STRATEGY* [3:00 PM]\n"
+    "☀️ *4. MILAN DAY STRATEGY*\n"
     f"👉 Target Jodis: {mday_pred['jodis']}\n"
     f"👉 Target Pannas: {mday_pred['panna']}\n"
     "-------------------------------------\n\n"
-    "🌙 *5. MILAN NIGHT STRATEGY* [9:10 PM]\n"
+    "🌙 *5. MILAN NIGHT STRATEGY*\n"
     f"👉 Target Jodis: {mnight_pred['jodis']}\n"
     f"👉 Target Pannas: {mnight_pred['panna']}\n"
     "-------------------------------------\n\n"
-    "🚀 *6. RAJDHANI NIGHT STRATEGY* [9:30 PM]\n"
+    "🚀 *6. RAJDHANI NIGHT STRATEGY*\n"
     f"👉 Target Jodis: {rnight_pred['jodis']}\n"
     f"👉 Target Pannas: {rnight_pred['panna']}\n"
     "━━━━━━━━━━━━━━━━━━━━━\n"
@@ -158,8 +156,8 @@ if clean_token and TELEGRAM_CHAT_ID:
             
         pin_payload = {"chat_id": TELEGRAM_CHAT_ID, "message_id": new_msg_id, "disable_notification": True}
         trigger_telegram_api("pinChatMessage", pin_payload)
-        print(f"SUCCESS: Multi-Market Dashboard updated and pinned. Reference ID: {new_msg_id}")
+        print(f"SUCCESS: Multi-Market Dashboard updated and pinned. ID: {new_msg_id}")
     else:
-        print(f"Delivery failure. Status code: {res.status_code if res else 'No Response'}")
+        print(f"Delivery failure. Status code: {res.status_code if res else 'No Response'}. Response text: {res.text if res else ''}")
 else:
-    print("SETUP ERROR: Token parameters missing in execution container environment.")
+    print("SETUP ERROR: Key configuration parameters are missing or default placeholders are still used.")
