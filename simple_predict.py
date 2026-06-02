@@ -17,22 +17,18 @@ headers = {
 log_file = "last_msg_id.txt"
 
 def trigger_telegram_api(method_name, data_payload):
-    """Directly routes structural payloads to the Telegram bot endpoint with full diagnostic output."""
+    """Directly routes structural payloads to the Telegram bot endpoint."""
     if not clean_token or not TELEGRAM_CHAT_ID:
-        print("❌ CRITICAL DIAGNOSTIC: Environment keys are missing inside the engine runtime!")
-        print(f"Token length detected: {len(clean_token)} | Chat ID length detected: {len(TELEGRAM_CHAT_ID)}")
+        print("CRITICAL: Environment keys are missing inside the engine runtime!")
         return None
     
     p1 = "ht" + "tps:/" + "/ap" + "i.te"
     p2 = "leg" + "ram.o" + "rg/b" + "ot"
     endpoint = p1 + p2 + str(clean_token) + "/" + method_name
     try:
-        res = requests.post(endpoint, data=data_payload, timeout=15)
-        print(f"📡 DIAGNOSTIC [{method_name}]: Server responded with HTTP {res.status_code}")
-        print(f"📡 DIAGNOSTIC [{method_name}]: Server Response Details -> {res.text}")
-        return res
+        return requests.post(endpoint, data=data_payload, timeout=15)
     except Exception as e:
-        print(f"❌ CONNECTION FAILURE on {method_name}: {e}")
+        print(f"API Connection error on {method_name}: {e}")
         return None
 
 # --- 1. Automated Old Message Cleanup ---
@@ -77,22 +73,24 @@ def scrape_all_market_digits():
 print("Running calculations for all charts...")
 all_markets_data = scrape_all_market_digits()
 
-# --- 3. Mathematical Trends Engine ---
+# --- 3. Mathematical Trends Engine (Tuple-Safe Realignment) ---
 def calculate_predictions(digits_list):
     counts = collections.Counter(digits_list)
     top_items = counts.most_common(4)
     
-    # Safely extract the raw keys out of list tuples
+    # FIX: Safely extract the raw string digit from the (digit, count) tuple layout
     d1 = top_items[0][0] if len(top_items) > 0 else "7"
     d2 = top_items[1][0] if len(top_items) > 1 else "2"
     d3 = top_items[2][0] if len(top_items) > 2 else "1"
     d4 = top_items[3][0] if len(top_items) > 3 else "5"
     
     cut_map = {'1':'6', '2':'7', '3':'8', '4':'9', '5':'0', '6':'1', '7':'2', '8':'3', '9':'4', '0':'5'}
-    c1, c2 = cut_map.get(d1, "2"), cut_map.get(d2, "7")
+    c1 = cut_map.get(d1, "2")
+    c2 = cut_map.get(d2, "7")
     
     return {
-        "jodis": f"`{d1}{d2}` • `{d2}{d1}` • `{d3}{d4}` • `{d1}{c1}`",
+        "direct_jodis": f"`{d1}{d2}` • `{d2}{d1}` • `{d3}{d4}`",
+        "cross_jodis": f"`{d1}{c1}` • `{d2}{c2}` • `{d3}{c2}`",
         "panna": f"`12{d1}` • `35{d2}` • `78{d4}`"
     }
 
@@ -114,27 +112,33 @@ tg_message = (
     f"📅 *Date:* `{formatted_date}` | 🕒 *Time:* `{formatted_time}`\n"
     "━━━━━━━━━━━━━━━━━━━━━\n\n"
     "👑 *1. KALYAN BAZAR STRATEGY*\n"
-    f"👉 Target Jodis: {kalyan_pred['jodis']}\n"
+    f"👉 Direct Jodis: {kalyan_pred['direct_jodis']}\n"
+    f"👉 Cross Jodis:  {kalyan_pred['cross_jodis']}\n"
     f"👉 Target Pannas: {kalyan_pred['panna']}\n"
     "-------------------------------------\n\n"
     "💼 *2. MAIN BAZAR STRATEGY*\n"
-    f"👉 Target Jodis: {main_pred['jodis']}\n"
+    f"👉 Direct Jodis: {main_pred['direct_jodis']}\n"
+    f"👉 Cross Jodis:  {main_pred['cross_jodis']}\n"
     f"👉 Target Pannas: {main_pred['panna']}\n"
     "-------------------------------------\n\n"
     "⏰ *3. TIME BAZAR STRATEGY*\n"
-    f"👉 Target Jodis: {time_pred['jodis']}\n"
+    f"👉 Direct Jodis: {time_pred['direct_jodis']}\n"
+    f"👉 Cross Jodis:  {time_pred['cross_jodis']}\n"
     f"👉 Target Pannas: {time_pred['panna']}\n"
     "-------------------------------------\n\n"
     "☀️ *4. MILAN DAY STRATEGY*\n"
-    f"👉 Target Jodis: {mday_pred['jodis']}\n"
+    f"👉 Direct Jodis: {mday_pred['direct_jodis']}\n"
+    f"👉 Cross Jodis:  {mday_pred['cross_jodis']}\n"
     f"👉 Target Pannas: {mday_pred['panna']}\n"
     "-------------------------------------\n\n"
     "🌙 *5. MILAN NIGHT STRATEGY*\n"
-    f"👉 Target Jodis: {mnight_pred['jodis']}\n"
+    f"👉 Direct Jodis: {mnight_pred['direct_jodis']}\n"
+    f"👉 Cross Jodis:  {mnight_pred['cross_jodis']}\n"
     f"👉 Target Pannas: {mnight_pred['panna']}\n"
     "-------------------------------------\n\n"
     "🚀 *6. RAJDHANI NIGHT STRATEGY*\n"
-    f"👉 Target Jodis: {rnight_pred['jodis']}\n"
+    f"👉 Direct Jodis: {rnight_pred['direct_jodis']}\n"
+    f"👉 Cross Jodis:  {rnight_pred['cross_jodis']}\n"
     f"👉 Target Pannas: {rnight_pred['panna']}\n"
     "━━━━━━━━━━━━━━━━━━━━━\n"
     "📌 _This dashboard updates all active markets on auto-pilot daily._"
@@ -152,6 +156,6 @@ if clean_token and TELEGRAM_CHAT_ID:
             
         pin_payload = {"chat_id": TELEGRAM_CHAT_ID, "message_id": new_msg_id, "disable_notification": True}
         trigger_telegram_api("pinChatMessage", pin_payload)
-        print("🏁 PROCESS COMPLETE: Full Dashboard updated and pinned successfully.")
+        print("SUCCESS: Full Multi-Market Dashboard updated with Cross Lines.")
     else:
-        print(f"❌ DISPATCH REJECTED BY TELEGRAM. Status code: {res.status_code if res else 'No Response'}")
+        print(f"Failed. API Code: {res.status_code if res else 'No Response'}")
