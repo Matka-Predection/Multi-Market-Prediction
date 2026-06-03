@@ -4,16 +4,12 @@ on:
   schedule:
     # Wakes up automatically at exactly 7:00 AM IST (01:30 AM UTC) EVERY SINGLE DAY (Mon-Sun)
     - cron: '30 01 * * *'
-  workflow_dispatch: 
+  workflow_dispatch: # Allows manual trigger anytime for testing
 
 jobs:
   run-script:
     runs-on: ubuntu-latest
     
-    env:
-      TELEGRAM_TOKEN: ${{ secrets.MY_SECRET_BOT_KEY }}
-      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-
     steps:
       - name: Checkout repository code
         uses: actions/checkout@v5
@@ -24,6 +20,10 @@ jobs:
           pip3 install requests beautifulsoup4 pytz
 
       - name: Start Realtime Monitoring Open Loop
+        env:
+          # Securely maps your GitHub Secret Keys to the variables required by the script
+          BOT_TOKEN: ${{ secrets.MY_SECRET_BOT_KEY }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python3 simple_predict.py
 
       - name: Save Tracking State
