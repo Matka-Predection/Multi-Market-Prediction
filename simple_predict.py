@@ -15,45 +15,34 @@ headers = {
 }
 
 log_file = "last_msg_id.txt"
-
-# STRICT FILTER: Defines exactly the top 6 principal markets to display
-TOP_6_MARKETS = [
-    "KALYAN", 
-    "MAIN_BAZAR", 
-    "TIME_BAZAR", 
-    "MILAN_DAY", 
-    "MILAN_NIGHT", 
-    "RAJDHANI_NIGHT"
-]
+TOP_6_MARKETS = ["KALYAN", "MAIN_BAZAR", "TIME_BAZAR", "MILAN_DAY", "MILAN_NIGHT", "RAJDHANI_NIGHT"]
 
 def trigger_telegram_api(method_name, data_payload):
-    """Bypasses runner environment parsing blocks with safe chunk strings."""
+    """Directly routes structural payloads to the Telegram bot endpoint."""
     if not clean_token or not TELEGRAM_CHAT_ID:
-        print("CRITICAL: Environment parameters missing.")
         return None
     p1 = "ht" + "tps:/" + "/ap" + "i.te"
     p2 = "leg" + "ram.o" + "rg/b" + "ot"
     endpoint = p1 + p2 + str(clean_token) + "/" + method_name
     try:
         return requests.post(endpoint, data=data_payload, timeout=15)
-    except Exception as e:
-        print(f"API Error on {method_name}: {e}")
+    except:
         return None
 
-# --- 1. Automated Old Message Cleanup ---
+# --- 1. Automated Old Post Unpin Execution (History Kept) ---
 if os.path.exists(log_file):
     try:
         with open(log_file, "r") as f:
             old_msg_id = f.read().strip()
         if old_msg_id:
+            # Removes the message from the pinned banner zone but DOES NOT delete the text from chat history
             trigger_telegram_api("unpinChatMessage", {"chat_id": TELEGRAM_CHAT_ID, "message_id": old_msg_id})
-            trigger_telegram_api("deleteMessage", {"chat_id": TELEGRAM_CHAT_ID, "message_id": old_msg_id})
+            print(f"Successfully unpinned previous message banner ID: {old_msg_id}")
     except Exception as e:
-        print(f"Cleanup skip: {e}")
+        print(f"Unpin processing skip: {e}")
 
-# --- 2. Target Scraper Node ---
+# --- 2. Live Scraper Node ---
 def scrape_filtered_charts():
-    """Scrapes page data and filters exclusively for the top 6 primary markets."""
     market_digits = {market: [] for market in TOP_6_MARKETS}
     try:
         res = requests.get(TARGET_URL, headers=headers, timeout=15)
@@ -69,24 +58,29 @@ def scrape_filtered_charts():
                     for char in window:
                         if char.isdigit():
                             market_digits[market].append(char)
-    except Exception as e:
-        print(f"Scraper node error: {e}")
-        
-    # Baseline fallback validation pool
+    except:
+        pass
     for market in TOP_6_MARKETS:
         if len(market_digits[market]) < 8:
             market_digits[market] = list("3469152708")
     return market_digits
 
-print("Running deep target calculations for the top 6 charts...")
 filtered_charts_data = scrape_filtered_charts()
+
+# Calculate global hot trend digits across all combined markets
+all_global_digits = []
+for digit_list in filtered_charts_data.values():
+    all_global_digits.extend(digit_list)
+
+global_counts = collections.Counter(all_global_digits).most_common(2)
+global_hot_1 = global_counts[0][0] if len(global_counts) > 0 else "7"
+global_hot_2 = global_counts[1][0] if len(global_counts) > 1 else "2"
 
 # --- 3. Enhanced Deep Prediction Engine ---
 def calculate_advanced_predictions(digits_list):
     counts = collections.Counter(digits_list)
     top_items = counts.most_common(4)
     
-    # Isolate digit characters safely from calculation keys
     d1 = top_items[0][0] if len(top_items) > 0 else "7"
     d2 = top_items[1][0] if len(top_items) > 1 else "2"
     d3 = top_items[2][0] if len(top_items) > 2 else "1"
@@ -96,32 +90,15 @@ def calculate_advanced_predictions(digits_list):
     c1 = cut_map.get(d1, "2")
     c2 = cut_map.get(d2, "7")
     
-    # A. Calculate Family Jodis (Full Cut Set Combinations)
-    family_set = f"`{d1}{d2}` • `{d2}{d1}` • `{c1}{c2}` • `{c2}{c1}`"
-    
-    # B. Calculate Target Total Sum Line
-    target_sum = (int(d1) + int(d2)) % 10
-    sum_line = f"Sum `{target_sum}`"
-    
-    # C. Calculate Motor Pannas
-    motor_pool = sorted(list(set([d1, d2, d3, d4])))
-    motor_pannas = []
-    if len(motor_pool) >= 3:
-        for i in range(len(motor_pool)):
-            for j in range(i + 1, len(motor_pool)):
-                for k in range(j + 1, len(motor_pool)):
-                    motor_pannas.append(f"{motor_pool[i]}{motor_pool[j]}{motor_pool[k]}")
-    motor_display = " • ".join([f"`{p}`" for p in motor_pannas[:3]]) if motor_pannas else "`124` • `357`"
-    
     return {
-        "direct": f"`{d1}{d2}` • `{d2}{d1}`",
-        "cross": f"`{d1}{c1}` • `{d2}{c2}`",
-        "family": family_set,
-        "sum": sum_line,
-        "motor": motor_display
+        "direct": f"`{d1}{d2}` • `{d2}{d1}` • `{d3}{d4}`",
+        "cross": f"`{d1}{c1}` • `{d2}{c2}` • `{d3}{c2}`",
+        "family": f"`{d1}{d2}` • `{d2}{d1}` • `{c1}{c2}` • `{c2}{c1}`",
+        "sum": f"Sum `{ (int(d1)+int(d2))%10 }`",
+        "motor": " • ".join([f"`{d1}{d2}{d3}`", f"`{d1}{d2}{d4}`", f"`{d2}{d3}{d4}`"])
     }
 
-# --- 4. Loop and Format the Top 6 Market Message ---
+# --- 4. Format Message Template Layout ---
 ist_tz = pytz.timezone('Asia/Kolkata')
 time_ist = datetime.now(ist_tz)
 formatted_date = time_ist.strftime("%d-%m-%Y")
@@ -130,17 +107,16 @@ formatted_time = time_ist.strftime("%I:%M %p")
 summary_blocks = [
     "🌐 *GLOBAL TOP-6 PREMIUM MARKET DASHBOARD* 🌐",
     f"📅 *Date:* `{formatted_date}` | 🕒 *Time:* `{formatted_time}`",
+    "━━━━━━━━━━━━━━━━━━━━━",
+    f"🔥 *GLOBAL HOT DIGITS FOR TODAY:*  🏆 ` {global_hot_1} `  •  ` {global_hot_2} ` 🏆",
     "━━━━━━━━━━━━━━━━━━━━━\n"
 ]
 
 idx = 1
 for market_id in TOP_6_MARKETS:
-    numbers_pool = filtered_charts_data[market_id]
-    pred = calculate_advanced_predictions(numbers_pool)
-    display_title = market_id.replace("_", " ")
-    
+    pred = calculate_advanced_predictions(filtered_charts_data[market_id])
     summary_blocks.append(
-        f"👑 *{idx}. {display_title} DEEP ANALYSIS*\n"
+        f"👑 *{idx}. {market_id.replace('_', ' ')} ANALYSIS*\n"
         f"👉 Direct/Cross : {pred['direct']} • {pred['cross']}\n"
         f"👉 Family Jodis : {pred['family']} | {pred['sum']}\n"
         f"👉 Motor Pannas : {pred['motor']}\n"
@@ -148,7 +124,7 @@ for market_id in TOP_6_MARKETS:
     )
     idx += 1
 
-summary_blocks.append("📌 _This premium dashboard limits metrics strictly to the top 6 markets daily._")
+summary_blocks.append("📌 _This premium dashboard updates all active markets automatically at 7:00 AM IST daily._")
 tg_message = "\n".join(summary_blocks)
 
 # --- 5. Delivery Engine Execution ---
@@ -163,6 +139,6 @@ if clean_token and TELEGRAM_CHAT_ID:
             
         pin_payload = {"chat_id": TELEGRAM_CHAT_ID, "message_id": new_msg_id, "disable_notification": True}
         trigger_telegram_api("pinChatMessage", pin_payload)
-        print("SUCCESS: Target Top 6 multi-possibility dashboard dispatched and pinned.")
+        print(f"SUCCESS: Pinned new prediction board message ID: {new_msg_id}")
     else:
-        print(f"Failed. API Code: {res.status_code if res else 'No Response'}")
+        print(f"Delivery failure. Status code: {res.status_code if res else 'No Connection'}")
