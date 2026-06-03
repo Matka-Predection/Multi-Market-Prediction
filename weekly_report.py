@@ -63,7 +63,7 @@ formatted_date = time_ist.strftime("%d-%m-%Y")
 
 # --- Premium Layout Card Configuration ---
 report_card = (
-    "📊 *WEEKLY PERFORMANCE ACCURACY REPORT* 📊\n"
+    "🎰 *MATKA BAZAAR WEEKLY ACCURACY REPORT CARD* 🎰\n"
     f"📅 *Week Ending:* `{formatted_date}`\n"
     "━━━━━━━━━━━━━━━━━━━━━━━━━\n"
     f"🌟 *Current Status:* {badge}\n"
