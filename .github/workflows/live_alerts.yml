@@ -2,28 +2,31 @@ name: Continuous Live Winner Alerts
 
 on:
   schedule:
-    # Wakes up automatically Monday to Friday during active result publication windows
-    # Trigger 1: 1:00 PM IST (07:30 UTC) | Trigger 2: 3:30 PM IST (10:00 UTC) | Trigger 3: 9:00 PM IST (15:30 UTC)
     - cron: '30 07 * * 1-5'
     - cron: '00 10 * * 1-5'
     - cron: '30 15 * * 1-5'
-  workflow_dispatch: # Allows manual trigger anytime for testing
+  workflow_dispatch: 
 
 jobs:
   monitor-live-results:
     runs-on: ubuntu-latest
-    
     steps:
       - name: Checkout repository code
         uses: actions/checkout@v5
 
       - name: Install dependencies
-        run: |
-          python3 -m pip install --upgrade pip
-          pip3 install requests beautifulsoup4 pytz
+        run: pip3 install requests beautifulsoup4 pytz
 
       - name: Execute Live Realtime Scraper Loop
         env:
           BOT_TOKEN: ${{ secrets.MY_SECRET_BOT_KEY }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python3 live_alerts.py
+
+      - name: Save Log State
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@://github.com"
+          git add accuracy_history.csv || true
+          git commit -m "Log metrics update [skip ci]" || true
+          git push || true
