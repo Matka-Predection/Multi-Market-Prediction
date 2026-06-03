@@ -2,24 +2,34 @@ name: Run Live Kalyan Open Tracker Loop
 
 on:
   schedule:
-    - cron: '15 7 * * 1-5'
+    # Wakes up automatically at exactly 7:00 AM IST (01:30 AM UTC) EVERY SINGLE DAY (Mon-Sun)
+    - cron: '30 01 * * *'
   workflow_dispatch: 
 
 jobs:
   run-script:
     runs-on: ubuntu-latest
+    
+    env:
+      TELEGRAM_TOKEN: ${{ secrets.MY_SECRET_BOT_KEY }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
     steps:
-      - uses: actions/checkout@v5
-      - run: pip3 install requests beautifulsoup4 pytz
-      - name: Run Engine
-        env:
-          BOT_TOKEN: ${{ secrets.MY_SECRET_BOT_KEY }}
-          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      - name: Checkout repository code
+        uses: actions/checkout@v5
+
+      - name: Install website reader and timezone tools
+        run: |
+          python3 -m pip install --upgrade pip
+          pip3 install requests beautifulsoup4 pytz
+
+      - name: Start Realtime Monitoring Open Loop
         run: python3 simple_predict.py
+
       - name: Save Tracking State
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@://github.com"
           git add last_msg_id.txt || true
-          git commit -m "Update state [skip ci]" || true
+          git commit -m "Update tracking state [skip ci]" || true
           git push || true
