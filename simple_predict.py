@@ -35,9 +35,8 @@ if os.path.exists(log_file):
         with open(log_file, "r") as f:
             old_msg_id = f.read().strip()
         if old_msg_id:
-            # Removes the message from the pinned banner zone but DOES NOT delete the text from chat history
             trigger_telegram_api("unpinChatMessage", {"chat_id": TELEGRAM_CHAT_ID, "message_id": old_msg_id})
-            print(f"Successfully unpinned previous message banner ID: {old_msg_id}")
+            print(f"Successfully unpinned previous Matka Bazaar banner ID: {old_msg_id}")
     except Exception as e:
         print(f"Unpin processing skip: {e}")
 
@@ -67,7 +66,6 @@ def scrape_filtered_charts():
 
 filtered_charts_data = scrape_filtered_charts()
 
-# Calculate global hot trend digits across all combined markets
 all_global_digits = []
 for digit_list in filtered_charts_data.values():
     all_global_digits.extend(digit_list)
@@ -105,7 +103,7 @@ formatted_date = time_ist.strftime("%d-%m-%Y")
 formatted_time = time_ist.strftime("%I:%M %p")
 
 summary_blocks = [
-    "🌐 *GLOBAL TOP-6 PREMIUM MARKET DASHBOARD* 🌐",
+    "🎰 *MATKA BAZAAR PREMIUM DASHBOARD* 🎰",
     f"📅 *Date:* `{formatted_date}` | 🕒 *Time:* `{formatted_time}`",
     "━━━━━━━━━━━━━━━━━━━━━",
     f"🔥 *GLOBAL HOT DIGITS FOR TODAY:*  🏆 ` {global_hot_1} `  •  ` {global_hot_2} ` 🏆",
@@ -124,7 +122,7 @@ for market_id in TOP_6_MARKETS:
     )
     idx += 1
 
-summary_blocks.append("📌 _This premium dashboard updates all active markets automatically at 7:00 AM IST daily._")
+summary_blocks.append("📌 _This Matka Bazaar dashboard updates active markets automatically at 7:00 AM IST daily._")
 tg_message = "\n".join(summary_blocks)
 
 # --- 5. Delivery Engine Execution ---
@@ -139,6 +137,6 @@ if clean_token and TELEGRAM_CHAT_ID:
             
         pin_payload = {"chat_id": TELEGRAM_CHAT_ID, "message_id": new_msg_id, "disable_notification": True}
         trigger_telegram_api("pinChatMessage", pin_payload)
-        print(f"SUCCESS: Pinned new prediction board message ID: {new_msg_id}")
+        print(f"SUCCESS: Pinned new Matka Bazaar board message ID: {new_msg_id}")
     else:
         print(f"Delivery failure. Status code: {res.status_code if res else 'No Connection'}")
