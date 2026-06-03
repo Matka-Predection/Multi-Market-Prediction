@@ -2,9 +2,9 @@ name: Run Live Kalyan Close Tracker Loop
 
 on:
   schedule:
-    # Wakes up automatically at exactly 7:30 PM IST (02:00 PM UTC) EVERY SINGLE DAY (Mon-Sun)
-    - cron: '00 14 * * *'
-  workflow_dispatch: # Allows manual trigger anytime for testing
+    # Wakes up early at 7:00 PM IST (01:30 PM UTC) EVERY SINGLE DAY (Mon-Sun) to bypass server lag
+    - cron: '30 13 * * *'
+  workflow_dispatch: 
 
 jobs:
   run-script:
