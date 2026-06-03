@@ -26,10 +26,11 @@ jobs:
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python3 live_alerts.py
 
+          # Section from inside live_alerts.yml
       - name: Save Log State
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@://github.com"
-          git add accuracy_history.csv || true
+          git add accuracy_history.csv last_live_msg_id.txt || true
           git commit -m "Log metrics update [skip ci]" || true
           git push || true
