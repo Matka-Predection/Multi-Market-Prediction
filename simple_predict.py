@@ -11,7 +11,7 @@ import time
 ist_tz = pytz.timezone('Asia/Kolkata')
 current_time = datetime.now(ist_tz)
 
-# 1. TIME DELAY HANDLER: Holds execution if GitHub wakes up early to clear queues
+# TIME DELAY HANDLER: Holds execution if GitHub wakes up early to clear queues
 while current_time.hour == 6 and current_time.minute < 59:
     print(f"Waiting for morning target window... India Time: {current_time.strftime('%I:%M %p')}")
     time.sleep(30)
@@ -40,7 +40,6 @@ log_file = "last_msg_id.txt"
 TOP_6_MARKETS = ["KALYAN", "MAIN_BAZAR", "TIME_BAZAR", "MILAN_DAY", "MILAN_NIGHT", "RAJDHANI_NIGHT"]
 
 def trigger_telegram_api(method_name, data_payload):
-    """Directly routes structural payloads to the Telegram bot endpoint."""
     if not clean_token or not TELEGRAM_CHAT_ID:
         return None
     p1 = "ht" + "tps:/" + "/ap" + "i.te"
@@ -51,7 +50,7 @@ def trigger_telegram_api(method_name, data_payload):
     except:
         return None
 
-# --- 2. Automated Old Post Unpin Execution ---
+# --- 1. Automated Old Post Unpin Execution ---
 if os.path.exists(log_file):
     try:
         with open(log_file, "r") as f:
@@ -62,9 +61,8 @@ if os.path.exists(log_file):
     except Exception as e:
         print(f"Unpin processing skip: {e}")
 
-# --- 3. Upgraded Raw Text Context Scraper ---
+# --- 2. Upgraded Raw Text Context Scraper ---
 def scrape_filtered_charts():
-    """Extracts raw text data from the portal page and targets local matrix blocks."""
     market_digits = {market: [] for market in TOP_6_MARKETS}
     try:
         res = requests.get(TARGET_URL, headers=headers, timeout=15)
@@ -90,14 +88,14 @@ def scrape_filtered_charts():
     except Exception as e:
         print(f"Scraper fault handled: {e}")
         
-    # Unique non-overlapping fallbacks to avoid repeating same numbers across markets
+    # Unique, distinct fallbacks to prevent overlapping matching outputs
     fallbacks = {
-        "KALYAN": list("148935"), "MAIN_BAZAR": list("267014"), "TIME_BAZAR": list("589234"),
-        "MILAN_DAY": list("346170"), "MILAN_NIGHT": list("789052"), "RAJDHANI_NIGHT": list("012367")
+        "KALYAN": list("346915"), "MAIN_BAZAR": list("152708"), "TIME_BAZAR": list("890346"),
+        "MILAN_DAY": list("270815"), "MILAN_NIGHT": list("527083"), "RAJDHANI_NIGHT": list("469152")
     }
     for market in TOP_6_MARKETS:
         if len(market_digits[market]) < 5:
-            market_digits[market] = fallbacks.get(market, list("148935"))
+            market_digits[market] = fallbacks.get(market, list("346915"))
             
     return market_digits
 
@@ -108,15 +106,15 @@ for digit_list in filtered_charts_data.values():
     all_global_digits.extend(digit_list)
 
 global_counts = collections.Counter(all_global_digits).most_common(2)
-global_hot_1 = str(global_counts[0][0]) if len(global_counts) > 0 else "7"
-global_hot_2 = str(global_counts[1][0]) if len(global_counts) > 1 else "2"
+global_hot_1 = global_counts[0][0] if len(global_counts) > 0 else "7"
+global_hot_2 = global_counts[1][0] if len(global_counts) > 1 else "2"
 
-# --- 4. Fixed Statistical Token Conversion Engine ---
+# --- 3. Corrected Statistical Token Conversion Engine ---
 def calculate_advanced_predictions(digits_list):
     counts = collections.Counter(digits_list)
     top_items = counts.most_common(4)
     
-    # CORRECTED FIX: Safely extracts the actual string character out of list-tuples [(digit, count)]
+    # FIXED LOGIC: Extracts the clean numeric string character out of nested list-tuples [(digit, count)]
     d1 = str(top_items[0][0]) if len(top_items) > 0 else "7"
     d2 = str(top_items[1][0]) if len(top_items) > 1 else "2"
     d3 = str(top_items[2][0]) if len(top_items) > 2 else "1"
@@ -165,15 +163,13 @@ tg_message = "\n".join(summary_blocks)
 # --- 5. Delivery Engine Execution ---
 if clean_token and TELEGRAM_CHAT_ID:
     payload = {"chat_id": TELEGRAM_CHAT_ID, "text": tg_message, "parse_mode": "Markdown"}
-    res = trigger_telegram_api("sendMessage", payload)
-    
-    if res and res.status_code == 200:
+    res = requests.post("https://telegram.org" + clean_token + "/sendMessage", data=payload)
+    if res.status_code == 200:
         new_msg_id = res.json().get("result", {}).get("message_id")
         with open(log_file, "w") as f:
             f.write(str(new_msg_id))
-            
         pin_payload = {"chat_id": TELEGRAM_CHAT_ID, "message_id": new_msg_id, "disable_notification": True}
-        trigger_telegram_api("pinChatMessage", pin_payload)
+        requests.post("https://telegram.org" + clean_token + "/pinChatMessage", data=pin_payload)
         print("SUCCESS: Full dynamic text scan dashboard updated and pinned.")
     else:
-        print(f"Delivery failure. Status code: {res.status_code if res else 'No Connection'}")
+        print(f"Delivery failure: {res.status_code}")
