@@ -60,8 +60,8 @@ print("Initializing live monitoring node...")
 baseline_snapshot = get_live_dashboard_snapshot()
 
 # Monitor interval control
-max_checks = 3
-check_interval = 10
+max_checks = 180
+check_interval = 15
 update_detected = False
 changed_market = "KALYAN"  # Default fallback market for on-demand test runs
 live_digits_found = []
