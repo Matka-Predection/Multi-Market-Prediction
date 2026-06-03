@@ -1,0 +1,32 @@
+name: Generate Weekly Report Card
+
+on:
+  schedule:
+    # Triggers automatically every Friday at 10:30 PM IST (5:00 PM UTC)
+    - cron: '00 17 * * 5'
+  workflow_dispatch: 
+
+jobs:
+  build-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v5
+
+      - name: Install dependencies
+        run: pip3 install requests pytz
+
+      - name: Compile and Send Weekly Report Card
+        env:
+          BOT_TOKEN: ${{ secrets.MY_SECRET_BOT_KEY }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python3 weekly_report.py
+
+      # Commits the wiped/reset file state back to GitHub
+      - name: Reset State
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@://github.com"
+          git add accuracy_history.csv || true
+          git commit -m "Reset accuracy matrix [skip ci]" || true
+          git push || true
