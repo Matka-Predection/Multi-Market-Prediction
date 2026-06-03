@@ -4,7 +4,7 @@ on:
   schedule:
     # Triggers automatically every Friday at 10:30 PM IST (5:00 PM UTC)
     - cron: '00 17 * * 5'
-  workflow_dispatch: 
+  workflow_dispatch: # Allows manual trigger anytime for testing
 
 jobs:
   build-report:
