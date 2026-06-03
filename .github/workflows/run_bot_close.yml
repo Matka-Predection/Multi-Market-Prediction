@@ -2,24 +2,33 @@ name: Run Live Kalyan Close Tracker Loop
 
 on:
   schedule:
-    - cron: '0 14 * * 1-5'
-  workflow_dispatch: 
+    # Wakes up automatically at exactly 7:30 PM IST (02:00 PM UTC) EVERY SINGLE DAY (Mon-Sun)
+    - cron: '00 14 * * *'
+  workflow_dispatch: # Allows manual trigger anytime for testing
 
 jobs:
   run-script:
     runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v5
-      - run: pip3 install requests beautifulsoup4 pytz
-      - name: Run Engine
+      - name: Checkout repository code
+        uses: actions/checkout@v5
+
+      - name: Install website reader and timezone tools
+        run: |
+          python3 -m pip install --upgrade pip
+          pip3 install requests beautifulsoup4 pytz
+
+      - name: Start Realtime Monitoring Close Loop
         env:
           BOT_TOKEN: ${{ secrets.MY_SECRET_BOT_KEY }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python3 simple_predict.py
+
       - name: Save Tracking State
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@://github.com"
           git add last_msg_id.txt || true
-          git commit -m "Update state [skip ci]" || true
+          git commit -m "Update tracking state [skip ci]" || true
           git push || true
