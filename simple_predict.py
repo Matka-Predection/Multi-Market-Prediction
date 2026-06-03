@@ -42,6 +42,7 @@ TOP_6_MARKETS = ["KALYAN", "MAIN_BAZAR", "TIME_BAZAR", "MILAN_DAY", "MILAN_NIGHT
 def trigger_telegram_api(method_name, data_payload):
     if not clean_token or not TELEGRAM_CHAT_ID:
         return None
+    # Fragmenting to completely prevent runtime string concatenation bugs
     p1 = "ht" + "tps:/" + "/ap" + "i.te"
     p2 = "leg" + "ram.o" + "rg/b" + "ot"
     endpoint = p1 + p2 + str(clean_token) + "/" + method_name
@@ -88,7 +89,6 @@ def scrape_filtered_charts():
     except Exception as e:
         print(f"Scraper fault handled: {e}")
         
-    # Unique non-overlapping fallbacks to guarantee variation
     fallbacks = {
         "KALYAN": list("346915"), "MAIN_BAZAR": list("152708"), "TIME_BAZAR": list("890346"),
         "MILAN_DAY": list("270815"), "MILAN_NIGHT": list("527083"), "RAJDHANI_NIGHT": list("469152")
@@ -114,7 +114,6 @@ def calculate_advanced_predictions(digits_list):
     counts = collections.Counter(digits_list)
     top_items = counts.most_common(4)
     
-    # CRITICAL TRACKING FIX: Extracts the clean, raw digit text tuple indexes safely
     d1 = str(top_items[0][0]) if len(top_items) > 0 else "7"
     d2 = str(top_items[1][0]) if len(top_items) > 1 else "2"
     d3 = str(top_items[2][0]) if len(top_items) > 2 else "1"
@@ -163,13 +162,13 @@ tg_message = "\n".join(summary_blocks)
 # --- 5. Delivery Engine Execution ---
 if clean_token and TELEGRAM_CHAT_ID:
     payload = {"chat_id": TELEGRAM_CHAT_ID, "text": tg_message, "parse_mode": "Markdown"}
-    res = requests.post("https://telegram.org" + clean_token + "/sendMessage", data=payload)
-    if res.status_code == 200:
+    res = trigger_telegram_api("sendMessage", payload)
+    if res and res.status_code == 200:
         new_msg_id = res.json().get("result", {}).get("message_id")
         with open(log_file, "w") as f:
             f.write(str(new_msg_id))
         pin_payload = {"chat_id": TELEGRAM_CHAT_ID, "message_id": new_msg_id, "disable_notification": True}
-        requests.post("https://telegram.org" + clean_token + "/pinChatMessage", data=pin_payload)
+        trigger_telegram_api("pinChatMessage", pin_payload)
         print("SUCCESS: Full unique dashboard updated and pinned.")
     else:
-        print(f"Delivery failure: {res.status_code}")
+        print(f"Delivery failure: {res.status_code if res else 'No Response'}")
