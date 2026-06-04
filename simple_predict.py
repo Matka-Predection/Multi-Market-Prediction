@@ -8,24 +8,10 @@ import re
 import time
 from concurrent.futures import ThreadPoolExecutor
 
-# Initialize timezone clock lock handling structures
+# Initialize timezone clock layout
 ist_tz = pytz.timezone('Asia/Kolkata')
 current_time = datetime.now(ist_tz)
-
-# --- 1. PRECISION TIMING COUNTDOWN CHECKS ---
-if current_time.hour == 6:
-    print("Morning lock active. Holding script until 07:00 AM IST...")
-    while current_time.hour == 6 and current_time.minute < 59:
-        time.sleep(10)
-        current_time = datetime.now(ist_tz)
-
-if current_time.hour == 19 and current_time.minute < 29:
-    print("Evening lock active. Holding script until 07:30 PM IST...")
-    while current_time.hour == 19 and current_time.minute < 29:
-        time.sleep(10)
-        current_time = datetime.now(ist_tz)
-
-print(f"🚀 Execution Authorized. Current India Time: {current_time.strftime('%I:%M %p')}")
+print(f"🚀 Running instant execution engine. Current India Time: {current_time.strftime('%I:%M %p')}")
 
 # Secure credentials pulled from environmental variables
 clean_token = os.environ.get("BOT_TOKEN", "").strip()
@@ -36,7 +22,7 @@ for bad_word in ["https://", "http://", "api.telegram.org", "telegram.org", "bot
 
 log_file = "last_msg_id.txt"
 
-# REVERTED: Mapped back to the original sattamatkadpboss.mobi historical endpoints
+# Original endpoints
 MARKET_CONFIGS = {
     "KALYAN": {"url": "https://sattamatkadpboss.mobi", "chart_name": "Kalyan Chart", "fb": "48935261"},
     "MAIN_BAZAR": {"url": "https://sattamatkadpboss.mobi", "chart_name": "Main Bazar Chart", "fb": "27014859"},
@@ -58,7 +44,7 @@ def trigger_telegram_api(method_name, data_payload):
     except:
         return None
 
-# --- 2. AUTOMATED TIMELINE CLEANUP (History Deleted) ---
+# --- 1. AUTOMATED TIMELINE CLEANUP (History Deleted) ---
 if os.path.exists(log_file):
     try:
         with open(log_file, "r") as f:
@@ -69,7 +55,7 @@ if os.path.exists(log_file):
     except:
         pass
 
-# --- 3. REVERTED PARALLEL HIGH-SPEED SCRAPER NODE ---
+# --- 2. REVERTED PARALLEL HIGH-SPEED SCRAPER NODE ---
 def fetch_single_market_worker(args):
     market_key, config = args
     digits = []
@@ -100,19 +86,18 @@ def fetch_single_market_worker(args):
         
     return market_key, digits[-60:], yesterday_result
 
-print("📡 Launching parallel data collection matrix across original endpoints...")
+print("📡 Launching data collection across original endpoints...")
 scraped_results = {}
 with ThreadPoolExecutor(max_workers=6) as executor:
     worker_outputs = executor.map(fetch_single_market_worker, MARKET_CONFIGS.items())
     for market_key, digits, yest_res in worker_outputs:
         scraped_results[market_key] = {"digits": digits, "yesterday": yest_res}
 
-# --- 4. ACCURATE STATS ENGINE (TUPLE-SAFE REPAIR) ---
+# --- 3. ACCURATE STATS ENGINE (TUPLE-SAFE REPAIR) ---
 def calculate_precise_predictions(digits_list):
     counts = collections.Counter(digits_list)
     top_items = counts.most_common(4)
     
-    # Correct key element index tracking fixes identical calculation bugs permanently
     d1 = str(top_items[0][0]) if len(top_items) > 0 else "7"
     d2 = str(top_items[1][0]) if len(top_items) > 1 else "2"
     d3 = str(top_items[2][0]) if len(top_items) > 2 else "1"
@@ -129,7 +114,7 @@ def calculate_precise_predictions(digits_list):
         "motor": f"`{d1}{d2}{d3}` • `{d1}{d2}{d4}` • `{d2}{d3}{d4}`"
     }
 
-# --- 5. FORMAT DASHBOARD LAYOUT ---
+# --- 4. FORMAT DASHBOARD LAYOUT ---
 formatted_date = current_time.strftime("%d-%m-%Y")
 formatted_time = current_time.strftime("%I:%M %p")
 session_tag = "OPEN STRATEGY" if current_time.hour < 17 else "CLOSE STRATEGY"
@@ -169,7 +154,7 @@ summary_blocks.insert(3, f"🔥 *GLOBAL HOT DIGITS FOR TODAY:*  🏆 ` {gh1} `  
 summary_blocks.append("📌 _This Matka Bazaar dashboard updates active markets automatically using separate isolated chart sources daily._")
 tg_message = "\n".join(summary_blocks)
 
-# --- 6. TELEGRAM TRANSMISSION ---
+# --- 5. TELEGRAM TRANSMISSION ---
 if clean_token and TELEGRAM_CHAT_ID:
     payload = {"chat_id": TELEGRAM_CHAT_ID, "text": tg_message, "parse_mode": "Markdown"}
     res = trigger_telegram_api("sendMessage", payload)
