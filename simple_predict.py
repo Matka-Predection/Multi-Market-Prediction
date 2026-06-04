@@ -107,14 +107,15 @@ def calculate_advanced_predictions(digits_list):
     counts = collections.Counter(weighted_pool)
     top_items = counts.most_common(4)
     
-    # CRITICAL TRACKING FIX: Unpacks raw tuple matrix layers safely prior to string conversion
+    # CORRECTED TUPLE UNPACK LOGIC: Extracts clean digit text string out of nested list-tuples [(digit, count)]
     d1 = str(top_items[0][0]) if len(top_items) > 0 else "7"
     d2 = str(top_items[1][0]) if len(top_items) > 1 else "2"
     d3 = str(top_items[2][0]) if len(top_items) > 2 else "1"
     d4 = str(top_items[3][0]) if len(top_items) > 3 else "5"
     
     cut_map = {'1':'6', '2':'7', '3':'8', '4':'9', '5':'0', '6':'1', '7':'2', '8':'3', '9':'4', '0':'5'}
-    c1, c2 = cut_map.get(d1, "2"), cut_map.get(d2, "7")
+    c1 = cut_map.get(d1, "2")
+    c2 = cut_map.get(d2, "7")
     
     return {
         "direct": f"`{d1}{d2}` • `{d2}{d1}` • `{d3}{d4}`",
