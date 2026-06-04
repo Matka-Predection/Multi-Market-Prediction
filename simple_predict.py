@@ -62,15 +62,10 @@ def fetch_single_market_worker(args):
         res = requests.get(config["url"], headers=headers, timeout=8)
         if res.status_code == 200:
             soup = BeautifulSoup(res.text, 'html.parser')
-            
-            # Extract plain text content and normalize spaces to prevent parsing cracks
             text_dump = re.sub(r'\s+', ' ', soup.get_text()).upper()
-            
-            # Regex targets the precise standardized results structure format '124-75-357' or isolated '75' pairs
             all_tokens = re.findall(r'\b\d{3}-\d{2}-\d{3}\b|\b\d{3}-\d{2}\b|\b\d{2}\b', text_dump)
             
             if all_tokens:
-                # 1. Isolate the absolute latest entry for the Last Result field
                 latest_token = all_tokens[-1]
                 if "-" in latest_token:
                     parts = latest_token.split("-")
@@ -78,14 +73,12 @@ def fetch_single_market_worker(args):
                 else:
                     yesterday_result = latest_token
                 
-                # 2. Extract digits from recent records to feed the statistical analyzer
                 for token in all_tokens[-15:]:
                     clean_chars = token.replace("-", "")
                     digits.extend(list(clean_chars))
     except Exception as parse_error:
         print(f"Parsing alert handle on {market_key}: {parse_error}")
     
-    # Failover protection layer: Guarantees unique results if a network timeout occurs
     if len(digits) < 10:
         digits = list(config["fb_digits"] + "70")
         yesterday_result = config["fb_res"]
@@ -107,14 +100,14 @@ def calculate_advanced_predictions(digits_list):
     older_segment = digits_list[:-25] if len(digits_list) >= 25 else []
     
     for d in recent_segment:
-        weighted_pool.extend([d] * 3) # Hot numbers are triply prioritized
+        weighted_pool.extend([d] * 3)
     for d in older_segment:
         weighted_pool.append(d)
         
     counts = collections.Counter(weighted_pool)
     top_items = counts.most_common(4)
     
-    # Extract only the pure string digits from the list of tuples [('4', 12)]
+    # CRITICAL TRACKING FIX: Unpacks raw tuple matrix layers safely prior to string conversion
     d1 = str(top_items[0][0]) if len(top_items) > 0 else "7"
     d2 = str(top_items[1][0]) if len(top_items) > 1 else "2"
     d3 = str(top_items[2][0]) if len(top_items) > 2 else "1"
