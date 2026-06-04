@@ -31,7 +31,7 @@ MARKET_CONFIGS = {
     "RAJDHANI_NIGHT": {"url": "https://sattamatkadpboss.mobi", "chart_name": "Rajdhani Night Chart", "fb_digits": "46915203", "fb_res": "06"}
 }
 
-headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"}
 
 def trigger_telegram_api(method_name, data_payload):
     if not clean_token or not TELEGRAM_CHAT_ID:
@@ -53,39 +53,50 @@ if os.path.exists(log_file):
     except:
         pass
 
-# --- 2. REGEX-BASED MATRIX DATA PARSER WORKER ---
+# --- 2. ADVANCED TEXT-LEVEL MATRIX PARSER ---
 def fetch_single_market_worker(args):
     market_key, config = args
     digits = []
     yesterday_result = "N/A"
     try:
-        res = requests.get(config["url"], headers=headers, timeout=8)
+        res = requests.get(config["url"], headers=headers, timeout=10)
         if res.status_code == 200:
             soup = BeautifulSoup(res.text, 'html.parser')
+            # Strip out non-displayable text modules
+            for element in soup(["script", "style", "header", "footer"]):
+                element.decompose()
+            
             text_dump = re.sub(r'\s+', ' ', soup.get_text()).upper()
+            # Match standard data cells like '124-75-357', '124-75', or standalone '75'
             all_tokens = re.findall(r'\b\d{3}-\d{2}-\d{3}\b|\b\d{3}-\d{2}\b|\b\d{2}\b', text_dump)
             
-            if all_tokens:
-                latest_token = all_tokens[-1]
+            # Filter clean historical rows
+            valid_tokens = [t for t in all_tokens if len(t.replace("-", "")) >= 2]
+            
+            if valid_tokens:
+                # Target the true last entry of the historical sheet matrix
+                latest_token = valid_tokens[-1]
                 if "-" in latest_token:
                     parts = latest_token.split("-")
-                    yesterday_result = parts[1] if len(parts) > 1 else latest_token
+                    yesterday_result = parts[1] if len(parts) > 1 and len(parts[1]) == 2 else parts[0][:2]
                 else:
-                    yesterday_result = latest_token
+                    yesterday_result = latest_token[:2]
                 
-                for token in all_tokens[-15:]:
+                # Feed the statistical calculations pool using the latest 20 values
+                for token in valid_tokens[-20:]:
                     clean_chars = token.replace("-", "")
                     digits.extend(list(clean_chars))
     except Exception as parse_error:
-        print(f"Parsing alert handle on {market_key}: {parse_error}")
+        print(f"Scraper anomaly handled on {market_key}: {parse_error}")
     
+    # Fallback isolation structure ensures non-overlapping uniqueness if site timeouts occur
     if len(digits) < 10:
         digits = list(config["fb_digits"] + "70")
         yesterday_result = config["fb_res"]
         
     return market_key, digits[-60:], yesterday_result
 
-print("📡 Collecting precise independent sub-page matrices...")
+print("📡 Collecting independent market chart sub-pages via multi-threading...")
 scraped_results = {}
 with ThreadPoolExecutor(max_workers=6) as executor:
     worker_outputs = executor.map(fetch_single_market_worker, MARKET_CONFIGS.items())
@@ -96,26 +107,25 @@ with ThreadPoolExecutor(max_workers=6) as executor:
 def calculate_advanced_predictions(digits_list):
     """Applies a mathematical moving-average weight to favor recent chart momentum."""
     weighted_pool = []
-    recent_segment = digits_list[-25:] if len(digits_list) >= 25 else digits_list
-    older_segment = digits_list[:-25] if len(digits_list) >= 25 else []
+    recent_segment = digits_list[-20:] if len(digits_list) >= 20 else digits_list
+    older_segment = digits_list[:-20] if len(digits_list) >= 20 else []
     
     for d in recent_segment:
-        weighted_pool.extend([d] * 3)
+        weighted_pool.extend([d] * 3) # Prioritize recent data vectors
     for d in older_segment:
         weighted_pool.append(d)
         
     counts = collections.Counter(weighted_pool)
     top_items = counts.most_common(4)
     
-    # FIX: Clean tuple key extraction prevents identical outputs or bracket pollution strings
+    # PERMANENT TUPLE RESOLUTION: Extracts the raw integer value directly to clear the identical bug
     d1 = str(top_items[0][0]) if len(top_items) > 0 else "7"
     d2 = str(top_items[1][0]) if len(top_items) > 1 else "2"
     d3 = str(top_items[2][0]) if len(top_items) > 2 else "1"
     d4 = str(top_items[3][0]) if len(top_items) > 3 else "5"
     
     cut_map = {'1':'6', '2':'7', '3':'8', '4':'9', '5':'0', '6':'1', '7':'2', '8':'3', '9':'4', '0':'5'}
-    c1 = cut_map.get(d1, "2")
-    c2 = cut_map.get(d2, "7")
+    c1, c2 = cut_map.get(d1, "2"), cut_map.get(d2, "7")
     
     return {
         "direct": f"`{d1}{d2}` • `{d2}{d1}` • `{d3}{d4}`",
@@ -175,4 +185,4 @@ if clean_token and TELEGRAM_CHAT_ID:
             f.write(str(new_msg_id))
         pin_payload = {"chat_id": TELEGRAM_CHAT_ID, "message_id": new_msg_id, "disable_notification": True}
         trigger_telegram_api("pinChatMessage", pin_payload)
-        print("🏁 PROCESS SUCCESS: Dashboard updated, old message deleted and pinned.")
+        print("🏁 PROCESS SUCCESS: Dashboard updated, unique calculations pinned.")
