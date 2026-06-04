@@ -14,13 +14,13 @@ current_time = datetime.now(ist_tz)
 
 # --- 1. PRECISION TIMING COUNTDOWN CHECKS ---
 if current_time.hour == 6:
-    print(f"Morning lock active. Holding script until 07:00 AM IST...")
+    print("Morning lock active. Holding script until 07:00 AM IST...")
     while current_time.hour == 6 and current_time.minute < 59:
         time.sleep(10)
         current_time = datetime.now(ist_tz)
 
 if current_time.hour == 19 and current_time.minute < 29:
-    print(f"Evening lock active. Holding script until 07:30 PM IST...")
+    print("Evening lock active. Holding script until 07:30 PM IST...")
     while current_time.hour == 19 and current_time.minute < 29:
         time.sleep(10)
         current_time = datetime.now(ist_tz)
@@ -36,14 +36,14 @@ for bad_word in ["https://", "http://", "api.telegram.org", "telegram.org", "bot
 
 log_file = "last_msg_id.txt"
 
-# Unified Market Configuration Matrix with Targeted Sub-Pages
+# REVERTED: Mapped back to the original sattamatkadpboss.mobi historical endpoints
 MARKET_CONFIGS = {
-    "KALYAN": {"url": "https://spboss.mobi", "chart_name": "Kalyan Chart", "fb": "48935261"},
-    "MAIN_BAZAR": {"url": "https://spboss.mobi", "chart_name": "Main Bazar Chart", "fb": "27014859"},
-    "TIME_BAZAR": {"url": "https://spboss.mobi", "chart_name": "Time Bazar Chart", "fb": "89034612"},
-    "MILAN_DAY": {"url": "https://spboss.mobi", "chart_name": "Milan Day Chart", "fb": "15427083"},
-    "MILAN_NIGHT": {"url": "https://spboss.mobi", "chart_name": "Milan Night Chart", "fb": "52739014"},
-    "RAJDHANI_NIGHT": {"url": "https://spboss.mobi", "chart_name": "Rajdhani Night Chart", "fb": "69152038"}
+    "KALYAN": {"url": "https://sattamatkadpboss.mobi", "chart_name": "Kalyan Chart", "fb": "48935261"},
+    "MAIN_BAZAR": {"url": "https://sattamatkadpboss.mobi", "chart_name": "Main Bazar Chart", "fb": "27014859"},
+    "TIME_BAZAR": {"url": "https://sattamatkadpboss.mobi", "chart_name": "Time Bazar Chart", "fb": "89034612"},
+    "MILAN_DAY": {"url": "https://sattamatkadpboss.mobi", "chart_name": "Milan Day Chart", "fb": "15427083"},
+    "MILAN_NIGHT": {"url": "https://sattamatkadpboss.mobi", "chart_name": "Milan Night Chart", "fb": "52739014"},
+    "RAJDHANI_NIGHT": {"url": "https://sattamatkadpboss.mobi", "chart_name": "Rajdhani Night Chart", "fb": "69152038"}
 }
 
 headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
@@ -58,18 +58,18 @@ def trigger_telegram_api(method_name, data_payload):
     except:
         return None
 
-# --- 2. AUTOMATED TIMELINE CLEANUP ---
+# --- 2. AUTOMATED TIMELINE CLEANUP (History Deleted) ---
 if os.path.exists(log_file):
     try:
         with open(log_file, "r") as f:
             old_msg_id = f.read().strip()
         if old_msg_id:
             trigger_telegram_api("deleteMessage", {"chat_id": TELEGRAM_CHAT_ID, "message_id": old_msg_id})
-            print(f"🧹 Cleaned up old post ID: {old_msg_id}")
+            print(f"🧹 Permanently deleted yesterday's post ID: {old_msg_id}")
     except:
         pass
 
-# --- 3. HIGH-SPEED PARALLEL MULTI-THREADED SCRAPER ---
+# --- 3. REVERTED PARALLEL HIGH-SPEED SCRAPER NODE ---
 def fetch_single_market_worker(args):
     market_key, config = args
     digits = []
@@ -100,7 +100,7 @@ def fetch_single_market_worker(args):
         
     return market_key, digits[-60:], yesterday_result
 
-print("📡 Launching parallel connection matrix lines...")
+print("📡 Launching parallel data collection matrix across original endpoints...")
 scraped_results = {}
 with ThreadPoolExecutor(max_workers=6) as executor:
     worker_outputs = executor.map(fetch_single_market_worker, MARKET_CONFIGS.items())
@@ -112,7 +112,7 @@ def calculate_precise_predictions(digits_list):
     counts = collections.Counter(digits_list)
     top_items = counts.most_common(4)
     
-    # Correct key array unpacking fixes identical data value bugs completely
+    # Correct key element index tracking fixes identical calculation bugs permanently
     d1 = str(top_items[0][0]) if len(top_items) > 0 else "7"
     d2 = str(top_items[1][0]) if len(top_items) > 1 else "2"
     d3 = str(top_items[2][0]) if len(top_items) > 2 else "1"
@@ -150,7 +150,7 @@ for market_key, info in MARKET_CONFIGS.items():
     past_jodi = data["yesterday"]
     all_extracted_digits.extend(chart_digits)
     
-    pred = calculate_advanced_predictions(chart_digits)
+    pred = calculate_precise_predictions(chart_digits)
     
     summary_blocks.append(
         f"👑 *{idx}. {info['chart_name']}* ➔ Last Result: *{past_jodi}*\n"
@@ -166,7 +166,7 @@ gh1 = str(global_counts[0][0]) if len(global_counts) > 0 else "7"
 gh2 = str(global_counts[1][0]) if len(global_counts) > 1 else "2"
 
 summary_blocks.insert(3, f"🔥 *GLOBAL HOT DIGITS FOR TODAY:*  🏆 ` {gh1} `  •  ` {gh2} ` 🏆\n━━━━━━━━━━━━━━━━━━━━━")
-summary_blocks.append("📌 _This Matka Bazaar dashboard updates active markets using separate isolated chart sources daily._")
+summary_blocks.append("📌 _This Matka Bazaar dashboard updates active markets automatically using separate isolated chart sources daily._")
 tg_message = "\n".join(summary_blocks)
 
 # --- 6. TELEGRAM TRANSMISSION ---
@@ -179,4 +179,6 @@ if clean_token and TELEGRAM_CHAT_ID:
             f.write(str(new_msg_id))
         pin_payload = {"chat_id": TELEGRAM_CHAT_ID, "message_id": new_msg_id, "disable_notification": True}
         trigger_telegram_api("pinChatMessage", pin_payload)
-        print("🏁 SUCCESS: High-speed dashboard pinned successfully.")
+        print("🏁 SUCCESS: Reverted premium dashboard posted and pinned successfully.")
+    else:
+        print(f"Delivery failure: {res.status_code if res else 'No Response'}")
