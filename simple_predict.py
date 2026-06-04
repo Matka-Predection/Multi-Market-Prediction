@@ -127,7 +127,7 @@ def calculate_precise_predictions(digits_list):
     counts = collections.Counter(digits_list)
     top_items = counts.most_common(4)
     
-    # CRITICAL FIX: Safe object extraction from the tuple list before casting to string
+    # CRITICAL TRACKING FIX: Raw extraction from object array layer avoids bracket pollution strings
     d1 = str(top_items[0][0]) if len(top_items) > 0 else "7"
     d2 = str(top_items[1][0]) if len(top_items) > 1 else "2"
     d3 = str(top_items[2][0]) if len(top_items) > 2 else "1"
@@ -197,6 +197,6 @@ if clean_token and TELEGRAM_CHAT_ID:
             f.write(str(new_msg_id))
         pin_payload = {"chat_id": TELEGRAM_CHAT_ID, "message_id": new_msg_id, "disable_notification": True}
         trigger_telegram_api("pinChatMessage", pin_payload)
-        print("SUCCESS: Full high-precision standalone chart dashboard updated, yesterday's post deleted.")
+        print("SUCCESS: Standalone unique chart dashboard updated, old post deleted.")
     else:
         print(f"Delivery failure: {res.status_code if res else 'No Response'}")
