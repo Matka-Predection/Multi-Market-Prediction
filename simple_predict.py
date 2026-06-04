@@ -107,7 +107,7 @@ def calculate_advanced_predictions(digits_list):
     counts = collections.Counter(weighted_pool)
     top_items = counts.most_common(4)
     
-    # CORRECTED TUPLE UNPACK LOGIC: Extracts clean digit text string out of nested list-tuples [(digit, count)]
+    # FIX: Clean tuple key extraction prevents identical outputs or bracket pollution strings
     d1 = str(top_items[0][0]) if len(top_items) > 0 else "7"
     d2 = str(top_items[1][0]) if len(top_items) > 1 else "2"
     d3 = str(top_items[2][0]) if len(top_items) > 2 else "1"
