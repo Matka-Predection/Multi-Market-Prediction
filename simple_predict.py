@@ -56,20 +56,20 @@ def trigger_telegram_api(method_name, data_payload):
     except:
         return None
 
-# --- 1. Automated Old Post Unpin Execution ---
+# --- 1. FIXED: Automated Old Post Permanent Deletion ---
 if os.path.exists(log_file):
     try:
         with open(log_file, "r") as f:
             old_msg_id = f.read().strip()
         if old_msg_id:
-            trigger_telegram_api("unpinChatMessage", {"chat_id": TELEGRAM_CHAT_ID, "message_id": old_msg_id})
-            print(f"Successfully unpinned previous Matka Bazaar banner ID: {old_msg_id}")
+            # Completely deletes yesterday's prediction from chat memory timeline
+            trigger_telegram_api("deleteMessage", {"chat_id": TELEGRAM_CHAT_ID, "message_id": old_msg_id})
+            print(f"Successfully deleted yesterday's prediction panel message ID: {old_msg_id}")
     except Exception as e:
-        print(f"Unpin processing skip: {e}")
+        print(f"Cleanup processing skip: {e}")
 
 # --- 2. Deep Sub-Page Isolated Chart Table Scraper ---
 def scrape_individual_chart_history(target_url, market_key):
-    """Hits the explicit standalone history page to extract current metrics and the final result entry."""
     digits = []
     yesterday_result = "N/A"
     try:
@@ -78,16 +78,14 @@ def scrape_individual_chart_history(target_url, market_key):
             soup = BeautifulSoup(res.text, 'html.parser')
             
             raw_pairs = []
-            # Extract numbers from data table rows specifically
             for td in soup.find_all('td'):
                 txt = td.get_text().strip().replace(' ', '')
                 if txt.isdigit():
                     if len(txt) == 2:
                         raw_pairs.append(txt)
-                    if len(txt) in [2, 3]:
+                    if len(txt) in [3, 4, 8]:
                         digits.extend(list(txt))
             
-            # CRITICAL CORRECTION: Pull the ABSOLUTE LATEST entry from the table array as yesterday's result
             if len(raw_pairs) >= 1:
                 yesterday_result = raw_pairs[-1]
     except Exception as e:
@@ -141,14 +139,12 @@ all_extracted_digits = []
 idx = 1
 
 for market_name, chart_url in MARKET_CONFIGS.items():
-    print(f"Scraping dedicated sub-chart page for: {market_name}...")
     chart_digits, past_jodi = scrape_individual_chart_history(chart_url, market_name)
     all_extracted_digits.extend(chart_digits)
     
     pred = calculate_precise_predictions(chart_digits)
     display_title = market_name.replace('_', ' ')
     
-    # Yesterday's Result displayed in bold right next to the chart title
     summary_blocks.append(
         f"👑 *{idx}. {display_title}* ➔ Last Result: *{past_jodi}*\n"
         f"👉 Direct/Cross : {pred['direct']} • {pred['cross']}\n"
@@ -176,6 +172,6 @@ if clean_token and TELEGRAM_CHAT_ID:
             f.write(str(new_msg_id))
         pin_payload = {"chat_id": TELEGRAM_CHAT_ID, "message_id": new_msg_id, "disable_notification": True}
         trigger_telegram_api("pinChatMessage", pin_payload)
-        print("SUCCESS: Full high-precision standalone chart dashboard updated and pinned.")
+        print("SUCCESS: Today's precision dashboard posted, pinned, and yesterday's deleted.")
     else:
         print(f"Delivery failure: {res.status_code if res else 'No Response'}")
