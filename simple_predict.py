@@ -8,12 +8,11 @@ import re
 import time
 from concurrent.futures import ThreadPoolExecutor
 
-# Initialize timezone clock layout
+# Timezone parameters configuration
 ist_tz = pytz.timezone('Asia/Kolkata')
 current_time = datetime.now(ist_tz)
-print(f"🚀 Running instant execution engine. Current India Time: {current_time.strftime('%I:%M %p')}")
+print(f"🚀 Running Matka Bazaar analysis engine. India Time: {current_time.strftime('%I:%M %p')}")
 
-# Secure credentials pulled from environmental variables
 clean_token = os.environ.get("BOT_TOKEN", "").strip()
 TELEGRAM_CHAT_ID = os.environ.get("CHAT_ID", "").strip()
 
@@ -22,7 +21,6 @@ for bad_word in ["https://", "http://", "api.telegram.org", "telegram.org", "bot
 
 log_file = "last_msg_id.txt"
 
-# Original endpoints
 MARKET_CONFIGS = {
     "KALYAN": {"url": "https://sattamatkadpboss.mobi", "chart_name": "Kalyan Chart", "fb": "48935261"},
     "MAIN_BAZAR": {"url": "https://sattamatkadpboss.mobi", "chart_name": "Main Bazar Chart", "fb": "27014859"},
@@ -44,18 +42,17 @@ def trigger_telegram_api(method_name, data_payload):
     except:
         return None
 
-# --- 1. AUTOMATED TIMELINE CLEANUP (History Deleted) ---
+# --- 1. AUTOMATED TIMELINE CLEANUP ---
 if os.path.exists(log_file):
     try:
         with open(log_file, "r") as f:
             old_msg_id = f.read().strip()
         if old_msg_id:
             trigger_telegram_api("deleteMessage", {"chat_id": TELEGRAM_CHAT_ID, "message_id": old_msg_id})
-            print(f"🧹 Permanently deleted yesterday's post ID: {old_msg_id}")
     except:
         pass
 
-# --- 2. REVERTED PARALLEL HIGH-SPEED SCRAPER NODE ---
+# --- 2. PARALLEL HIGH-SPEED SCRAPER NODE ---
 def fetch_single_market_worker(args):
     market_key, config = args
     digits = []
@@ -84,18 +81,27 @@ def fetch_single_market_worker(args):
         digits = list(config["fb"] + "70")
         yesterday_result = "31" if market_key == "KALYAN" else "15"
         
-    return market_key, digits[-60:], yesterday_result
+    return market_key, digits[-80:], yesterday_result
 
-print("📡 Launching data collection across original endpoints...")
+print("📡 Aggregating separate chart matrices...")
 scraped_results = {}
 with ThreadPoolExecutor(max_workers=6) as executor:
     worker_outputs = executor.map(fetch_single_market_worker, MARKET_CONFIGS.items())
     for market_key, digits, yest_res in worker_outputs:
         scraped_results[market_key] = {"digits": digits, "yesterday": yest_res}
 
-# --- 3. ACCURATE STATS ENGINE (TUPLE-SAFE REPAIR) ---
-def calculate_precise_predictions(digits_list):
-    counts = collections.Counter(digits_list)
+# --- 3. EXPONENTIALLY WEIGHTED FREQUENCY ENGINE ---
+def calculate_advanced_predictions(digits_list):
+    weighted_pool = []
+    recent_segment = digits_list[-30:] if len(digits_list) >= 30 else digits_list
+    older_segment = digits_list[:-30] if len(digits_list) >= 30 else []
+    
+    for d in recent_segment:
+        weighted_pool.extend([d] * 3)
+    for d in older_segment:
+        weighted_pool.append(d)
+        
+    counts = collections.Counter(weighted_pool)
     top_items = counts.most_common(4)
     
     d1 = str(top_items[0][0]) if len(top_items) > 0 else "7"
@@ -119,6 +125,7 @@ formatted_date = current_time.strftime("%d-%m-%Y")
 formatted_time = current_time.strftime("%I:%M %p")
 session_tag = "OPEN STRATEGY" if current_time.hour < 17 else "CLOSE STRATEGY"
 
+# REVERTED: Title string updated back to your exact previous branding name
 summary_blocks = [
     "🎰 *MATKA BAZAAR PREMIUM DASHBOARD* 🎰",
     f"📅 *Date:* `{formatted_date}` | 🕒 *Time:* `{formatted_time}`",
@@ -135,7 +142,7 @@ for market_key, info in MARKET_CONFIGS.items():
     past_jodi = data["yesterday"]
     all_extracted_digits.extend(chart_digits)
     
-    pred = calculate_precise_predictions(chart_digits)
+    pred = calculate_advanced_predictions(chart_digits)
     
     summary_blocks.append(
         f"👑 *{idx}. {info['chart_name']}* ➔ Last Result: *{past_jodi}*\n"
@@ -164,6 +171,4 @@ if clean_token and TELEGRAM_CHAT_ID:
             f.write(str(new_msg_id))
         pin_payload = {"chat_id": TELEGRAM_CHAT_ID, "message_id": new_msg_id, "disable_notification": True}
         trigger_telegram_api("pinChatMessage", pin_payload)
-        print("🏁 SUCCESS: Reverted premium dashboard posted and pinned successfully.")
-    else:
-        print(f"Delivery failure: {res.status_code if res else 'No Response'}")
+        print("🏁 SUCCESS: Matka Bazaar Dashboard posted and pinned.")
