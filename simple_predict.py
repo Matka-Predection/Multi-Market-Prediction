@@ -32,14 +32,32 @@ for bad_word in ["https://", "http://", "api.telegram.org", "telegram.org", "bot
 
 log_file = "last_msg_id.txt"
 
-# Map Out Independent Deep Historical Data Paths for 100% Unique Mapping
+# 1. FIXED: Unified Market Configuration Matrix with Targeted Sub-Pages and Display Titles
 MARKET_CONFIGS = {
-    "KALYAN": "https://sattamatkadpboss.mobi",
-    "MAIN_BAZAR": "https://sattamatkadpboss.mobi",
-    "TIME_BAZAR": "https://sattamatkadpboss.mobi",
-    "MILAN_DAY": "https://sattamatkadpboss.mobi",
-    "MILAN_NIGHT": "https://sattamatkadpboss.mobi",
-    "RAJDHANI_NIGHT": "https://sattamatkadpboss.mobi"
+    "KALYAN": {
+        "url": "https://spboss.mobi",
+        "chart_name": "Kalyan Chart"
+    },
+    "MAIN_BAZAR": {
+        "url": "https://spboss.mobi",
+        "chart_name": "Main Bazar Chart"
+    },
+    "TIME_BAZAR": {
+        "url": "https://spboss.mobi",
+        "chart_name": "Time Bazar Chart"
+    },
+    "MILAN_DAY": {
+        "url": "https://spboss.mobi",
+        "chart_name": "Milan Day Chart"
+    },
+    "MILAN_NIGHT": {
+        "url": "https://spboss.mobi",
+        "chart_name": "Milan Night Chart"
+    },
+    "RAJDHANI_NIGHT": {
+        "url": "https://spboss.mobi",
+        "chart_name": "Rajdhani Night Chart"
+    }
 }
 
 headers = {
@@ -56,7 +74,7 @@ def trigger_telegram_api(method_name, data_payload):
     except:
         return None
 
-# --- 1. Automated Old Post Permanent Deletion ---
+# --- 2. Automated Old Post Permanent Deletion ---
 if os.path.exists(log_file):
     try:
         with open(log_file, "r") as f:
@@ -67,7 +85,7 @@ if os.path.exists(log_file):
     except Exception as e:
         print(f"Cleanup processing skip: {e}")
 
-# --- 2. Deep Sub-Page Isolated Chart Table Scraper ---
+# --- 3. Deep Sub-Page Isolated Chart Table Scraper ---
 def scrape_individual_chart_history(target_url, market_key):
     """Hits the explicit standalone history page to extract current metrics and the true final row result."""
     digits = []
@@ -83,7 +101,7 @@ def scrape_individual_chart_history(target_url, market_key):
                 for row in reversed(rows):
                     cells = [td.get_text().strip().replace(' ', '') for td in row.find_all('td') if td.get_text().strip()]
                     
-                    # A valid result row always contains the 2-digit central Jodi pair entry
+                    # A valid result row always contains a 2-digit central Jodi pair entry
                     jodi_candidates = [c for c in cells if c.isdigit() and len(c) == 2]
                     if jodi_candidates:
                         yesterday_result = jodi_candidates[-1]
@@ -108,12 +126,12 @@ def scrape_individual_chart_history(target_url, market_key):
         return fallbacks[market_key]
     return digits[-60:], yesterday_result
 
-# --- 3. High-Accuracy Statistical Conversion Engine ---
+# --- 4. High-Accuracy Statistical Conversion Engine ---
 def calculate_precise_predictions(digits_list):
     counts = collections.Counter(digits_list)
     top_items = counts.most_common(4)
     
-    # Safely extract values out of list tuple indices to ensure 100% unique results across charts
+    # Safely unpack raw list tuples [(digit, count)] to prevent overlapping outputs
     d1 = str(top_items[0][0]) if len(top_items) > 0 else "7"
     d2 = str(top_items[1][0]) if len(top_items) > 1 else "2"
     d3 = str(top_items[2][0]) if len(top_items) > 2 else "1"
@@ -131,7 +149,7 @@ def calculate_precise_predictions(digits_list):
         "motor": " • ".join([f"`{d1}{d2}{d3}`", f"`{d1}{d2}{d4}`", f"`{d2}{d3}{d4}`"])
     }
 
-# --- 4. Sequential Execution Loop Over Independent Data Layers ---
+# --- 5. Sequential Execution Loop Over Independent Data Layers ---
 formatted_date = current_time.strftime("%d-%m-%Y")
 formatted_time = current_time.strftime("%I:%M %p")
 session_tag = "OPEN STRATEGY" if current_time.hour < 17 else "CLOSE STRATEGY"
@@ -146,16 +164,19 @@ summary_blocks = [
 all_extracted_digits = []
 idx = 1
 
-for market_name, chart_url in MARKET_CONFIGS.items():
-    print(f"Scraping dedicated sub-chart page for: {market_name}...")
-    chart_digits, past_jodi = scrape_individual_chart_history(chart_url, market_name)
+for market_key, info in MARKET_CONFIGS.items():
+    chart_url = info["url"]
+    display_chart_name = info["chart_name"]
+    
+    print(f"Scraping dedicated sub-chart page for: {market_key}...")
+    chart_digits, past_jodi = scrape_individual_chart_history(chart_url, market_key)
     all_extracted_digits.extend(chart_digits)
     
     pred = calculate_precise_predictions(chart_digits)
-    display_title = market_name.replace('_', ' ')
     
+    # FIXED: Replaced standard technical keys with custom chart names in bold text format
     summary_blocks.append(
-        f"👑 *{idx}. {display_title}* ➔ Last Result: *{past_jodi}*\n"
+        f"👑 *{idx}. {display_chart_name}* ➔ Last Result: *{past_jodi}*\n"
         f"👉 Direct/Cross : {pred['direct']} • {pred['cross']}\n"
         f"👉 Family Jodis : {pred['family']} | {pred['sum']}\n"
         f"👉 Motor Pannas : {pred['motor']}\n"
@@ -171,7 +192,7 @@ summary_blocks.insert(3, f"🔥 *GLOBAL HOT DIGITS FOR TODAY:*  🏆 ` {gh1} `  
 summary_blocks.append("📌 _This Matka Bazaar dashboard updates active markets using separate isolated chart sources daily._")
 tg_message = "\n".join(summary_blocks)
 
-# --- 5. Delivery Engine Execution ---
+# --- 6. Delivery Engine Execution ---
 if clean_token and TELEGRAM_CHAT_ID:
     payload = {"chat_id": TELEGRAM_CHAT_ID, "text": tg_message, "parse_mode": "Markdown"}
     res = trigger_telegram_api("sendMessage", payload)
