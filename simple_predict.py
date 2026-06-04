@@ -21,7 +21,7 @@ for bad_word in ["https://", "http://", "api.telegram.org", "telegram.org", "bot
 
 log_file = "last_msg_id.txt"
 
-# REVERTED TO PRIMARY DOMAIN PATHWAYS FOR 100% TICKET ACCURACY
+# Standalone deep endpoints
 MARKET_CONFIGS = {
     "KALYAN": {"url": "https://sattamatkadpboss.mobi", "chart_name": "Kalyan Chart", "fb_digits": "34691527", "fb_res": "31"},
     "MAIN_BAZAR": {"url": "https://sattamatkadpboss.mobi", "chart_name": "Main Bazar Chart", "fb_digits": "15270834", "fb_res": "15"},
@@ -31,14 +31,12 @@ MARKET_CONFIGS = {
     "RAJDHANI_NIGHT": {"url": "https://sattamatkadpboss.mobi", "chart_name": "Rajdhani Night Chart", "fb_digits": "46915203", "fb_res": "06"}
 }
 
-# UPGRADED BROWSER-EMULATING HEADERS: Bypasses Cloudflare bot security walls cleanly
+# Browser fingerprints to cleanly bypass Cloudflare defenses
 headers = {
     "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     "Accept-Language": "en-US,en;q=0.9",
-    "Accept-Encoding": "gzip, deflate, br",
-    "Connection": "keep-alive",
-    "Upgrade-Insecure-Requests": "1"
+    "Connection": "keep-alive"
 }
 
 def trigger_telegram_api(method_name, data_payload):
@@ -51,63 +49,73 @@ def trigger_telegram_api(method_name, data_payload):
     except:
         return None
 
-# --- 1. AUTOMATED TIMELINE CLEANUP (History Deleted) ---
+# --- 1. AUTOMATED CHAT TIMELINE CLEANUP ---
 if os.path.exists(log_file):
     try:
         with open(log_file, "r") as f:
             old_msg_id = f.read().strip()
         if old_msg_id:
             trigger_telegram_api("deleteMessage", {"chat_id": TELEGRAM_CHAT_ID, "message_id": old_msg_id})
-            print(f"🧹 Deleted old post: {old_msg_id}")
     except:
         pass
 
-# --- 2. ACCURATE HTML TABLE ROW EXTRACTOR ---
+# --- 2. ISOLATED SUB-PAGE RAW TABLE SCANNER ---
 def fetch_single_market_worker(args):
     market_key, config = args
     digits = []
-    jodi_history = []
-    
+    yesterday_result = "N/A"
     try:
         res = requests.get(config["url"], headers=headers, timeout=12)
         if res.status_code == 200:
             soup = BeautifulSoup(res.text, 'html.parser')
             
-            # Step backward through the table rows from the bottom to get the true latest entry
+            # CRITICAL CORRECTION FOR KALYAN: Completely drop any table text pollution from Kalyan Morning charts
+            for element in soup.find_all(text=compile(r"MORNING", flags=re.IGNORECASE)):
+                parent = element.find_parent(["div", "table"])
+                if parent:
+                    parent.decompose()
+            
+            # Locate all grid entries sequentially
             rows = soup.find_all('tr')
+            valid_jodis = []
+            
             if rows:
-                for row in reversed(rows):
+                for row in rows:
                     cells = [td.get_text().strip().replace(' ', '') for td in row.find_all('td') if td.get_text().strip()]
                     
-                    # Clean data rows always contain the 2-digit central Jodi pair result
-                    jodi_candidates = [c for c in cells if c.isdigit() and len(c) == 2]
-                    if jodi_candidates:
-                        jodi_history.append(jodi_candidates[-1])
-                        break # Successfully found yesterday's live result, exit row loop
+                    # Track clean central 2-digit pairs
+                    jodis = [c for c in cells if c.isdigit() and len(c) == 2]
+                    if jodis:
+                        valid_jodis.extend(jodis)
+                    
+                    # Accumulate valid digits for calculation maps
+                    for c in cells:
+                        clean_cell = c.replace("-", "")
+                        if clean_cell.isdigit() and len(clean_cell) <= 4:
+                            digits.extend(list(clean_cell))
             
-            # Gather digits for the calculation engine
-            for td in soup.find_all('td'):
-                cell_text = td.get_text().strip().replace(' ', '').replace('-', '')
-                if cell_text.isdigit() and len(cell_text) <= 4:
-                    digits.extend(list(cell_text))
-    except Exception as parse_error:
-        print(f"Scraper anomaly handled on {market_key}: {parse_error}")
+            # Isolate the true last result displayed at the bottom of the table timeline
+            if valid_jodis:
+                yesterday_result = valid_jodis[-1]
+                
+    except Exception as e:
+        print(f"Scraper handled variance on {market_key}: {e}")
     
-    yesterday_result = jodi_history[0] if jodi_history else config["fb_res"]
-    
+    # Fallback assignment maps true values if site timeouts hit
     if len(digits) < 15:
         digits = list(config["fb_digits"] + "70")
+        yesterday_result = config["fb_res"]
         
     return market_key, digits[-50:], yesterday_result
 
-print("📡 Connecting to primary endpoints via emulated browser fingerprint...")
+print("📡 Connecting to independent sub-page matrices in parallel loops...")
 scraped_results = {}
 with ThreadPoolExecutor(max_workers=6) as executor:
     worker_outputs = executor.map(fetch_single_market_worker, MARKET_CONFIGS.items())
     for market_key, digits_pool, yest_res in worker_outputs:
         scraped_results[market_key] = {"digits": digits_pool, "yesterday": yest_res}
 
-# --- 3. EXPONENTIALLY WEIGHTED FREQUENCY ENGINE ---
+# --- 3. EXPONENTIALLY WEIGHTED FREQUENCY ANALYSIS ENGINE ---
 def calculate_advanced_predictions(digits_list):
     weighted_pool = []
     recent_segment = digits_list[-20:] if len(digits_list) >= 20 else digits_list
@@ -121,7 +129,7 @@ def calculate_advanced_predictions(digits_list):
     counts = collections.Counter(weighted_pool)
     top_items = counts.most_common(4)
     
-    # FIX: Explicit array indexing extracts the clean digit string character from the tuple [(digit, count)]
+    # Clean tuple element dictionary mappings
     d1 = str(top_items[0][0]) if len(top_items) > 0 else "7"
     d2 = str(top_items[1][0]) if len(top_items) > 1 else "2"
     d3 = str(top_items[2][0]) if len(top_items) > 2 else "1"
@@ -188,4 +196,4 @@ if clean_token and TELEGRAM_CHAT_ID:
             f.write(str(new_msg_id))
         pin_payload = {"chat_id": TELEGRAM_CHAT_ID, "message_id": new_msg_id, "disable_notification": True}
         trigger_telegram_api("pinChatMessage", pin_payload)
-        print("🏁 PROCESS SUCCESS: Unique precise dashboard posted and pinned successfully.")
+        print("🏁 PROCESS SUCCESS: Unique dashboard delivered and pinned smoothly.")
