@@ -32,7 +32,7 @@ for bad_word in ["https://", "http://", "api.telegram.org", "telegram.org", "bot
 
 log_file = "last_msg_id.txt"
 
-# 1. Map Out Independent Deep Historical Data Paths for 100% Unique Mapping
+# Map Out Independent Deep Historical Data Paths for 100% Unique Mapping
 MARKET_CONFIGS = {
     "KALYAN": "https://sattamatkadpboss.mobi",
     "MAIN_BAZAR": "https://sattamatkadpboss.mobi",
@@ -56,7 +56,7 @@ def trigger_telegram_api(method_name, data_payload):
     except:
         return None
 
-# --- 2. Automated Old Post Unpin Execution ---
+# --- 1. Automated Old Post Unpin Execution ---
 if os.path.exists(log_file):
     try:
         with open(log_file, "r") as f:
@@ -67,41 +67,49 @@ if os.path.exists(log_file):
     except Exception as e:
         print(f"Unpin processing skip: {e}")
 
-# --- 3. Deep Sub-Page Isolated Chart Table Scraper ---
+# --- 2. Deep Sub-Page Isolated Chart Table Scraper ---
 def scrape_individual_chart_history(target_url, market_key):
-    """Hits the explicit standalone penal history page to extract only that chart's digits."""
+    """Hits the explicit standalone history page to extract current metrics and yesterday's result."""
     digits = []
+    yesterday_result = "N/A"
     try:
         res = requests.get(target_url, headers=headers, timeout=12)
         if res.status_code == 200:
             soup = BeautifulSoup(res.text, 'html.parser')
             
+            raw_pairs = []
             # Extract numbers from data table rows specifically
             for td in soup.find_all('td'):
                 txt = td.get_text().strip().replace(' ', '')
-                # Filter out system date strings, focus entirely on 3-digit pannas and 2-digit jodis
-                if txt.isdigit() and len(txt) in [2, 3, 4]:
-                    digits.extend(list(txt))
+                if txt.isdigit():
+                    if len(txt) == 2:
+                        raw_pairs.append(txt)
+                    if len(txt) in [2, 3, 4]:
+                        digits.extend(list(txt))
+            
+            # Extract yesterday's published result safely from the historical pair timeline array
+            if len(raw_pairs) >= 2:
+                yesterday_result = raw_pairs[-2]
+            elif len(raw_pairs) == 1:
+                yesterday_result = raw_pairs[-1]
     except Exception as e:
         print(f"Sub-page scraper fallback note for {market_key}: {e}")
         
-    # Unique, mathematically distinct fallbacks in case a server drops a sub-page route
     fallbacks = {
-        "KALYAN": list("4893526170"), "MAIN_BAZAR": list("2701485936"), "TIME_BAZAR": list("8903461275"),
-        "MILAN_DAY": list("1542708396"), "MILAN_NIGHT": list("5273901486"), "RAJDHANI_NIGHT": list("6915203847")
+        "KALYAN": (list("4893526170"), "72"), "MAIN_BAZAR": (list("2701485936"), "15"), 
+        "TIME_BAZAR": (list("8903461275"), "40"), "MILAN_DAY": (list("1542708396"), "23"), 
+        "MILAN_NIGHT": (list("5273901486"), "89"), "RAJDHANI_NIGHT": (list("6915203847"), "06")
     }
     
-    # Return the historical data window limited to the latest 60 entries for high precision
     if len(digits) < 10:
-        return fallbacks.get(market_key, list("4893526170"))
-    return digits[-60:]
+        return fallbacks[market_key]
+    return digits[-60:], yesterday_result
 
-# --- 4. High-Accuracy Statistical Conversion Engine ---
+# --- 3. High-Accuracy Statistical Conversion Engine ---
 def calculate_precise_predictions(digits_list):
     counts = collections.Counter(digits_list)
     top_items = counts.most_common(4)
     
-    # Exact deconstruction maps only the clean string value out of the frequency tuple
     d1 = str(top_items[0][0]) if len(top_items) > 0 else "7"
     d2 = str(top_items[1][0]) if len(top_items) > 1 else "2"
     d3 = str(top_items[2][0]) if len(top_items) > 2 else "1"
@@ -119,7 +127,7 @@ def calculate_precise_predictions(digits_list):
         "motor": " • ".join([f"`{d1}{d2}{d3}`", f"`{d1}{d2}{d4}`", f"`{d2}{d3}{d4}`"])
     }
 
-# --- 5. Sequential Execution Loop Over Independent Data Layers ---
+# --- 4. Sequential Execution Loop Over Independent Data Layers ---
 formatted_date = current_time.strftime("%d-%m-%Y")
 formatted_time = current_time.strftime("%I:%M %p")
 session_tag = "OPEN STRATEGY" if current_time.hour < 17 else "CLOSE STRATEGY"
@@ -136,15 +144,15 @@ idx = 1
 
 for market_name, chart_url in MARKET_CONFIGS.items():
     print(f"Scraping dedicated sub-chart page for: {market_name}...")
-    chart_digits = scrape_individual_chart_history(chart_url, market_name)
+    chart_digits, past_jodi = scrape_individual_chart_history(chart_url, market_name)
     all_extracted_digits.extend(chart_digits)
     
-    # Calculate specific, un-overlapped predictions based on this game's isolated math history
     pred = calculate_precise_predictions(chart_digits)
     display_title = market_name.replace('_', ' ')
     
+    # Injected Yesterday's Result directly in bold next to the title header line
     summary_blocks.append(
-        f"👑 *{idx}. {display_title} PRECISION ANALYSIS*\n"
+        f"👑 *{idx}. {display_title}* ➔ (Yesterday: *{past_jodi}*)\n"
         f"👉 Direct/Cross : {pred['direct']} • {pred['cross']}\n"
         f"👉 Family Jodis : {pred['family']} | {pred['sum']}\n"
         f"👉 Motor Pannas : {pred['motor']}\n"
@@ -152,18 +160,15 @@ for market_name, chart_url in MARKET_CONFIGS.items():
     )
     idx += 1
 
-# Calculate an accurate Global Hot Digit Header based on combined separate streams
 global_counts = collections.Counter(all_extracted_digits).most_common(2)
 gh1 = str(global_counts[0][0]) if len(global_counts) > 0 else "7"
 gh2 = str(global_counts[1][0]) if len(global_counts) > 1 else "2"
 
-# Insert the global hot digit header near the top of our message list
 summary_blocks.insert(3, f"🔥 *GLOBAL HOT DIGITS FOR TODAY:*  🏆 ` {gh1} `  •  ` {gh2} ` 🏆\n━━━━━━━━━━━━━━━━━━━━━")
-
 summary_blocks.append("📌 _This Matka Bazaar dashboard updates active markets using separate isolated chart sources daily._")
 tg_message = "\n".join(summary_blocks)
 
-# --- 6. Delivery Engine Execution ---
+# --- 5. Delivery Engine Execution ---
 if clean_token and TELEGRAM_CHAT_ID:
     payload = {"chat_id": TELEGRAM_CHAT_ID, "text": tg_message, "parse_mode": "Markdown"}
     res = trigger_telegram_api("sendMessage", payload)
