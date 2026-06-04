@@ -32,7 +32,7 @@ for bad_word in ["https://", "http://", "api.telegram.org", "telegram.org", "bot
 
 log_file = "last_msg_id.txt"
 
-# 1. FIXED: Unified Market Configuration Matrix with Targeted Sub-Pages and Display Titles
+# Unified Market Configuration Matrix with Targeted Sub-Pages and Display Titles
 MARKET_CONFIGS = {
     "KALYAN": {
         "url": "https://spboss.mobi",
@@ -74,7 +74,7 @@ def trigger_telegram_api(method_name, data_payload):
     except:
         return None
 
-# --- 2. Automated Old Post Permanent Deletion ---
+# --- 1. Automated Old Post Permanent Deletion ---
 if os.path.exists(log_file):
     try:
         with open(log_file, "r") as f:
@@ -85,7 +85,7 @@ if os.path.exists(log_file):
     except Exception as e:
         print(f"Cleanup processing skip: {e}")
 
-# --- 3. Deep Sub-Page Isolated Chart Table Scraper ---
+# --- 2. Deep Sub-Page Isolated Chart Table Scraper ---
 def scrape_individual_chart_history(target_url, market_key):
     """Hits the explicit standalone history page to extract current metrics and the true final row result."""
     digits = []
@@ -95,19 +95,15 @@ def scrape_individual_chart_history(target_url, market_key):
         if res.status_code == 200:
             soup = BeautifulSoup(res.text, 'html.parser')
             
-            # Find all table rows to step backward from the bottom cleanly
             rows = soup.find_all('tr')
             if rows:
                 for row in reversed(rows):
                     cells = [td.get_text().strip().replace(' ', '') for td in row.find_all('td') if td.get_text().strip()]
-                    
-                    # A valid result row always contains a 2-digit central Jodi pair entry
                     jodi_candidates = [c for c in cells if c.isdigit() and len(c) == 2]
                     if jodi_candidates:
                         yesterday_result = jodi_candidates[-1]
-                        break # Found the latest verified live data result row, end search
+                        break
             
-            # Accumulate chart digits for probability density math
             for td in soup.find_all('td'):
                 txt = td.get_text().strip().replace(' ', '').replace('-', '')
                 if txt.isdigit() and len(txt) <= 4:
@@ -126,12 +122,12 @@ def scrape_individual_chart_history(target_url, market_key):
         return fallbacks[market_key]
     return digits[-60:], yesterday_result
 
-# --- 4. High-Accuracy Statistical Conversion Engine ---
+# --- 3. High-Accuracy Statistical Conversion Engine ---
 def calculate_precise_predictions(digits_list):
     counts = collections.Counter(digits_list)
     top_items = counts.most_common(4)
     
-    # Safely unpack raw list tuples [(digit, count)] to prevent overlapping outputs
+    # CRITICAL FIX: Safe object extraction from the tuple list before casting to string
     d1 = str(top_items[0][0]) if len(top_items) > 0 else "7"
     d2 = str(top_items[1][0]) if len(top_items) > 1 else "2"
     d3 = str(top_items[2][0]) if len(top_items) > 2 else "1"
@@ -149,7 +145,7 @@ def calculate_precise_predictions(digits_list):
         "motor": " • ".join([f"`{d1}{d2}{d3}`", f"`{d1}{d2}{d4}`", f"`{d2}{d3}{d4}`"])
     }
 
-# --- 5. Sequential Execution Loop Over Independent Data Layers ---
+# --- 4. Sequential Execution Loop Over Independent Data Layers ---
 formatted_date = current_time.strftime("%d-%m-%Y")
 formatted_time = current_time.strftime("%I:%M %p")
 session_tag = "OPEN STRATEGY" if current_time.hour < 17 else "CLOSE STRATEGY"
@@ -174,7 +170,6 @@ for market_key, info in MARKET_CONFIGS.items():
     
     pred = calculate_precise_predictions(chart_digits)
     
-    # FIXED: Replaced standard technical keys with custom chart names in bold text format
     summary_blocks.append(
         f"👑 *{idx}. {display_chart_name}* ➔ Last Result: *{past_jodi}*\n"
         f"👉 Direct/Cross : {pred['direct']} • {pred['cross']}\n"
@@ -192,7 +187,7 @@ summary_blocks.insert(3, f"🔥 *GLOBAL HOT DIGITS FOR TODAY:*  🏆 ` {gh1} `  
 summary_blocks.append("📌 _This Matka Bazaar dashboard updates active markets using separate isolated chart sources daily._")
 tg_message = "\n".join(summary_blocks)
 
-# --- 6. Delivery Engine Execution ---
+# --- 5. Delivery Engine Execution ---
 if clean_token and TELEGRAM_CHAT_ID:
     payload = {"chat_id": TELEGRAM_CHAT_ID, "text": tg_message, "parse_mode": "Markdown"}
     res = trigger_telegram_api("sendMessage", payload)
