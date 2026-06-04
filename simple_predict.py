@@ -69,7 +69,7 @@ if os.path.exists(log_file):
 
 # --- 2. Deep Sub-Page Isolated Chart Table Scraper ---
 def scrape_individual_chart_history(target_url, market_key):
-    """Hits the explicit standalone history page to extract current metrics and yesterday's result."""
+    """Hits the explicit standalone history page to extract current metrics and the final result entry."""
     digits = []
     yesterday_result = "N/A"
     try:
@@ -84,13 +84,11 @@ def scrape_individual_chart_history(target_url, market_key):
                 if txt.isdigit():
                     if len(txt) == 2:
                         raw_pairs.append(txt)
-                    if len(txt) in [2, 3, 4]:
+                    if len(txt) in [2, 3]:
                         digits.extend(list(txt))
             
-            # Extract yesterday's published result safely from the historical pair timeline array
-            if len(raw_pairs) >= 2:
-                yesterday_result = raw_pairs[-2]
-            elif len(raw_pairs) == 1:
+            # CRITICAL CORRECTION: Pull the ABSOLUTE LATEST entry from the table array as yesterday's result
+            if len(raw_pairs) >= 1:
                 yesterday_result = raw_pairs[-1]
     except Exception as e:
         print(f"Sub-page scraper fallback note for {market_key}: {e}")
@@ -150,9 +148,9 @@ for market_name, chart_url in MARKET_CONFIGS.items():
     pred = calculate_precise_predictions(chart_digits)
     display_title = market_name.replace('_', ' ')
     
-    # Injected Yesterday's Result directly in bold next to the title header line
+    # Yesterday's Result displayed in bold right next to the chart title
     summary_blocks.append(
-        f"👑 *{idx}. {display_title}* ➔ (Yesterday: *{past_jodi}*)\n"
+        f"👑 *{idx}. {display_title}* ➔ Last Result: *{past_jodi}*\n"
         f"👉 Direct/Cross : {pred['direct']} • {pred['cross']}\n"
         f"👉 Family Jodis : {pred['family']} | {pred['sum']}\n"
         f"👉 Motor Pannas : {pred['motor']}\n"
